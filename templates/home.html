@@ -1,12 +1,20 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Test Title</title>
-  </head>
-
-  <body>
-    <button>Hi</button>
-  </body>
-
+<img src= http://placekitten.com/200/300>
+<style>
+  canvas{
+    position: absolute
+  }
+</style>
+<canvas width="500" height="500">
+</canvas>
+<script>
+  console.log("hello")
+  const canvas = document.getElementsByTagName("canvas")[0];
+  const context = canvas.getContext("2d")
+  context.moveTo(0,0)
+  context.lineTo(20,20)
+  context.strokeStyle= "red"
+  context.stroke()
+</script>
 </html>
-

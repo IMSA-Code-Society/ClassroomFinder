@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      canvas {
+        position: absolute;
+      }
+      .hallway {
+        position: absolute;
+      }
+    </style>
+  </head>
+  <body>
+    <img class="hallway" src="imsa_hallway.jpg" />
+    <canvas width="1728" height="2240"> </canvas>
+    <script>
+        class Node{
+            constructor(name, id, x_position, y_position){
+            this.x = x_position;
+            this.y = y_position;
+            this.name = name;
+            this.id = id
+            this.nodes = []
+            }
+            add_neighbor(id){
+                this.nodes.push(id)
+            }
+    }
+    
+        console.log("hello");
+        const canvas = document.getElementsByTagName("canvas")[0];
+        const context = canvas.getContext("2d");
+        context.moveTo(0, 0);
+        context.lineTo(20, 20);
+        context.strokeStyle = "red";
+        context.stroke();
+        let nodes_array = []
+        let id_increment = 0
+        canvas.addEventListener("mousedown", (current_click) => {
+            const rect = canvas.getBoundingClientRect();
+            let x = current_click.clientX - rect.left;
+            let y = current_click.clientY - rect.top;
+            context.beginPath();
+            context.arc(x, y, 10, 0, 2 * Math.PI);
+            context.strokeStyle = "green";
+            context.fillStyle = "green";
+            context.fill();
+            context.stroke();
+            let user_input = prompt("Node name: ")
+            nodes_array.push(new Node(user_input, id_increment++, x, y))
+            console.log(nodes_array)
+        });
+    </script>
+  </body>
+</html>
