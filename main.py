@@ -1,18 +1,46 @@
 from Node import *
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify, request, send_file
 import math
-"""
-ourapp = Server(31415, "Test")
+from json import load
+nodes = []
+with open("nodes.json", mode="rt") as nodes_file:
+  response = load(nodes_file)
+  for node in response:
+    node_object = Node(node["name"], node["neighbor_nodes"], node["id"], node["x"], node["y"])
+    nodes.append(node_object)
+Finder = Server(31415, "Test")
 
-@ourapp.app.route("/")
-def hello_world():
+@Finder.app.route("/")
+def home_page():
   return render_template('home.html')
 
+@Finder.app.route("/editor")
+def editor():
+  return render_template('editor.html')
+
+@Finder.app.route("/save", methods=["POST"])
+def save():
+  with open("nodes.json", mode="wt") as nodes_file:
+    nodes_file.write(str(request.data))
+  response = {"status": 0}
+  return jsonify(response)
+
+@Finder.app.route("/image")
+def image():
+  return send_file('templates/imsa_hallway.jpg', mimetype="image/jpeg")
+
+@Finder.app.route("/get_directions")
+def directions():
+  reset_nodes()
+  shortest_path = time_path(0,3)
+  return 
+    
+
 if __name__ == "__main__":
-  ourapp.run_server()
-"""
+  Finder.run_server()
+
   
-nodes = []
+
 n0 = Node("test", [(1, 2), (2, 50)], 0)
 n1 = Node("test", [(0, 2), (2, 3), (3, 3)], 1)
 n2 = Node("test", [(0, 50), (1, 3), (3, 1)], 2)

@@ -11,22 +11,11 @@
     </style>
   </head>
   <body>
-    <img class="hallway" src="imsa_hallway.jpg" />
+    <button onclick="save_nodes()">Save all nodes</button>
+    <img class="hallway" src="/image" />
     <canvas width="1728" height="2240"> </canvas>
     <script>
-        class Node{
-            constructor(name, id, x_position, y_position){
-            this.x = x_position;
-            this.y = y_position;
-            this.name = name;
-            this.id = id
-            this.nodes = []
-            }
-            add_neighbor(id){
-                this.nodes.push(id)
-            }
-    }
-    
+      
         console.log("hello");
         const canvas = document.getElementsByTagName("canvas")[0];
         const context = canvas.getContext("2d");
@@ -47,9 +36,27 @@
             context.fill();
             context.stroke();
             let user_input = prompt("Node name: ")
-            nodes_array.push(new Node(user_input, id_increment++, x, y))
+            nodes_array.push({
+              x: x,
+              y: y,
+              name: user_input,
+              id: id_increment++,
+              neighbor_nodes: []
+            })
             console.log(nodes_array)
+            
         });
+        const save_nodes = () => {
+          fetch("/save", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(nodes_array)
+          }).then(data=>{return data.json()})
+          .then(json=>{console.log(json)})
+          .catch(err =>{console.log(err)})
+        }
     </script>
   </body>
 </html>
