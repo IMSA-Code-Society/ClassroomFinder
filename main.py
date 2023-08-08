@@ -8,47 +8,23 @@ with open("nodes.json", mode="rt") as nodes_file:
   for node in response:
     node_object = Node(node["name"], node["neighbor_nodes"], node["id"], node["x"], node["y"])
     nodes.append(node_object)
+
+
 Finder = Server(31415, "Test")
 
-@Finder.app.route("/")
-def home_page():
-  return render_template('home.html')
+def name_to_id(name):
+  for node in nodes:
+    if node.name == name:
+      return node.id
 
-@Finder.app.route("/editor")
-def editor():
-  return render_template('editor.html')
-
-@Finder.app.route("/save", methods=["POST"])
-def save():
-  with open("nodes.json", mode="wt") as nodes_file:
-    nodes_file.write(str(request.data))
-  response = {"status": 0}
-  return jsonify(response)
-
-@Finder.app.route("/image")
-def image():
-  return send_file('templates/imsa_hallway.jpg', mimetype="image/jpeg")
-
-@Finder.app.route("/get_directions")
-def directions():
-  reset_nodes()
-  shortest_path = time_path(0,3)
-  return 
-    
-
-if __name__ == "__main__":
-  Finder.run_server()
-
-  
-
-n0 = Node("test", [(1, 2), (2, 50)], 0)
-n1 = Node("test", [(0, 2), (2, 3), (3, 3)], 1)
-n2 = Node("test", [(0, 50), (1, 3), (3, 1)], 2)
-n3 = Node("test", [(1, 3), (2, 1)], 3)
-nodes.append(n0)
-nodes.append(n1)
-nodes.append(n2)
-nodes.append(n3)
+# n0 = Node("test", [(1, 2), (2, 50)], 0)
+# n1 = Node("test", [(0, 2), (2, 3), (3, 3)], 1)
+# n2 = Node("test", [(0, 50), (1, 3), (3, 1)], 2)
+# n3 = Node("test", [(1, 3), (2, 1)], 3)
+# nodes.append(n0)
+# nodes.append(n1)
+# nodes.append(n2)
+# nodes.append(n3)
 
 def reset_nodes():
   for i in range(len(nodes)):
@@ -59,6 +35,7 @@ def time_path(start_id, end_id):
   temp_node = nodes.copy()
   temp_node[start_id].dist = 0
   while len(temp_node) > 0:
+    print(temp_node[start_id].dist)
     nodes_index = find_closest_node(temp_node)
     closest_node = temp_node[nodes_index]
     temp_node.pop(nodes_index)
@@ -95,5 +72,41 @@ def find_closest_node(temp_node):
       closest_node = i
   return closest_node
 
-reset_nodes()
-print(time_path(0,3))
+
+
+@Finder.app.route("/")
+def home_page():
+  return render_template('home.html')
+
+@Finder.app.route("/editor")
+def editor():
+  return render_template('editor.html')
+
+@Finder.app.route("/save", methods=["POST"])
+def save():
+  with open("nodes.json", mode="wt") as nodes_file:
+    nodes_file.write(str(request.data))
+  response = {"status": 0}
+  return jsonify(response)
+
+@Finder.app.route("/image")
+def image():
+  return send_file('templates/imsa_hallway.jpg', mimetype="image/jpeg")
+
+@Finder.app.route("/get_directions", methods=["POST"])
+def directions():
+  reset_nodes()
+  start_room = name_to_id(request.json['start-room'])
+  destination = name_to_id(request.json['destination'])
+  shortest_path = time_path(start_room, destination)
+  path_json = []
+  for index in shortest_path:
+    x_coordinate = nodes[index].x
+    y_coordinate = nodes[index].y
+    node = {"x": x_coordinate, "y": y_coordinate}
+    path_json.append(node)
+  return jsonify(path_json)
+
+if __name__ == "__main__":
+  Finder.run_server()
+
