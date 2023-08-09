@@ -35,7 +35,6 @@ def time_path(start_id, end_id):
   temp_node = nodes.copy()
   temp_node[start_id].dist = 0
   while len(temp_node) > 0:
-    print(temp_node[start_id].dist)
     nodes_index = find_closest_node(temp_node)
     closest_node = temp_node[nodes_index]
     temp_node.pop(nodes_index)
@@ -97,7 +96,9 @@ def image():
 def directions():
   reset_nodes()
   start_room = name_to_id(request.json['start-room'])
+  print(start_room)
   destination = name_to_id(request.json['destination'])
+  print(destination)
   shortest_path = time_path(start_room, destination)
   path_json = []
   for index in shortest_path:
