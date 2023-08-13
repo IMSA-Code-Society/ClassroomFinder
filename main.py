@@ -16,6 +16,7 @@ def name_to_id(name):
   for node in nodes:
     if node.name == name:
       return node.id
+  return "Error"
 
 # n0 = Node("test", [(1, 2), (2, 50)], 0)
 # n1 = Node("test", [(0, 2), (2, 3), (3, 3)], 1)
@@ -96,9 +97,9 @@ def image():
 def directions():
   reset_nodes()
   start_room = name_to_id(request.json['start-room'])
-  print(start_room)
   destination = name_to_id(request.json['destination'])
-  print(destination)
+  if start_room == "Error" or destination == "Error":
+    return jsonify({"status": 1})
   shortest_path = time_path(start_room, destination)
   path_json = []
   for index in shortest_path:

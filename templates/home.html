@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <style>
-      canvas {
-        position: absolute;
-      }
-      .hallway {
-        position: absolute;
-      }
-    </style>
+   <link rel="stylesheet" href="home.css">
   </head>
   <body>
-    <input id="start" type = "text" placeholder="Enter Starting location">
-    <input id="end" type = "text" placeholder="Enter Destination">
-    <button onclick="find_directions()">Find Shortest Path</button>
-    <img class="hallway" src="/image" />
-    <canvas width="1728" height="2240"> </canvas>
+    <div class= "map">
+      <!--<img class="hallway" src="/image" />
+      <canvas width="1728" height="2240"> </canvas>-->
+    </div>
+
+    <div class= "input_response">
+      <div>
+        <input id="start" type = "text" placeholder="Enter Starting location">
+        <input id="end" type = "text" placeholder="Enter Destination">
+        <button onclick="find_directions()">Find Shortest Path</button>
+        <p id="message"></p>
+      </div>
+    </div>
+    
     <script>
         console.log("hello");
         let canvas = document.getElementsByTagName("canvas")[0];
@@ -35,9 +37,15 @@
           }).then(data=>{return data.json()})
           .then(json=>{
             console.log(json)
-            let canvas = document.getElementsByTagName("canvas")[0];
-            let context = canvas.getContext("2d");
+            if(json.status == 1){
+              document.getElementById("message").style.color = "red";
+              document.getElementById("message").innerHTML = "Error. Path could not be found."
+              return
+            }
+            document.getElementById("message").style.color = "green";
+            document.getElementById("message").innerHTML = "Path found!"
             context.clearRect(0, 0, canvas.width, canvas.height);
+            context.beginPath();
             for(let i=1; i < json.length; i++){
               context.moveTo(json[i-1]['x'], json[i-1]['y']);
               context.lineTo(json[i]['x'], json[i]['y']);
