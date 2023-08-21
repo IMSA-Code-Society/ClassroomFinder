@@ -93,6 +93,10 @@ def save():
 def image():
   return send_file('templates/imsa_hallway.jpg', mimetype="image/jpeg")
 
+@Finder.app.route("/home.css")
+def styles():
+  return send_file('templates/home.css', mimetype="text/css")
+
 @Finder.app.route("/get_directions", methods=["POST"])
 def directions():
   reset_nodes()

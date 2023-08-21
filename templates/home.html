@@ -1,14 +1,22 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="home.css" >
+    <div class="warning_box">
+      <div class="warning">
+        <p style="padding: 10px;">Warning, this website is only supported on mobile.</p>
+      </div>
+    </div>
+    <title>IMSA Classroom Finder</title>
+    <link rel="stylesheet" href="/home.css" >
+    <meta name= "viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
   </head>
   <body>
     <div class="map">
-      <img class="hallway" src="imsa_hallway.jpg" >
+      <img class="hallway" src="/image" >
       <canvas width="1728" height="2240"> </canvas>
+      
     </div>
-
+    <div class="filler_box"></div>
     <div class="input_response">
       <div class="input_response_contents">
         <input id="start" type="text" placeholder="Enter Starting location" >
@@ -16,12 +24,18 @@
         <button class="path_button" onclick="find_directions()">
           Find Shortest Path
         </button>
+        <div class="message_box">
+          <p id="message">this is a test.</p>
+        </div>
+        
       </div>
       
     </div>
-    <p id="message">this is a test.</p>
+    
     <script>
-      console.log("hello");
+      document.body.addEventListener("mousedown", (current_click) =>{
+        document.getElementsByClassName("warning_box")[0].style.display="none";
+      })
       let canvas = document.getElementsByTagName("canvas")[0];
       let context = canvas.getContext("2d");
       const find_directions = () => {

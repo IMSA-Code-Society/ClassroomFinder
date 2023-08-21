@@ -1,9 +1,10 @@
 canvas {
   position: absolute;
+  width: 200%;
 }
 .hallway {
   position: absolute;
-  width: 100%
+  width: 200%;
 }
 body{
   display: flex;
@@ -13,7 +14,15 @@ body{
   margin: 0;
   align-items: center;
 }
+.map::-webkit-scrollbar{
+  display: none;
+}
+.filler_box{
+  width: 100vw;
+  height: 25vh;
+}
 .map{
+  overflow: auto;
   width: 100%;
   height: 75%;
   position: relative;
@@ -45,6 +54,13 @@ body{
   justify-content: center;
 }
 */
+.input_response_contents{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px 10px;
+}
 input:focus{
   outline: none;
 }
@@ -52,10 +68,11 @@ input:focus{
 #message{
   background-color: yellow;
   text-align: center;
-  position: fixed;
-  bottom: 0;
-  z-index: 2;
-  margin-bottom: 2%
+  width: fit-content;
+  margin: auto;
+}
+.message_box{
+  width: 100%;
 }
 
 .path_button{
@@ -67,3 +84,27 @@ input:focus{
   box-shadow: none;
 }
 
+@media only screen and (max-width: 768px) {
+.warning_box,
+.warning{
+  display: none;
+}
+}
+@media only screen and (min-width: 768px) {
+.warning_box{
+  display: flex;
+  background-color: blue;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  justify-content: center;
+  align-items: center;
+  z-index: 3;
+}
+.warning{
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+}
