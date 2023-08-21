@@ -10,14 +10,3 @@ class Node:
     self.previous = None
     self.x = x
     self.y = y
-
-class Server:
-  def __init__(self, serverPort, name):
-    self.serverPort = serverPort
-    self.app = Flask(name)
-    
-  def run_server(self):
-    self.app.run(host='0.0.0.0', debug=True, port=self.serverPort)
-
-
-  

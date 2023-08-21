@@ -9,8 +9,7 @@ with open("nodes.json", mode="rt") as nodes_file:
     node_object = Node(node["name"], node["neighbor_nodes"], node["id"], node["x"], node["y"])
     nodes.append(node_object)
 
-
-Finder = Server(31415, "Test")
+app = Flask("Test")
 
 def name_to_id(name):
   for node in nodes:
@@ -74,30 +73,30 @@ def find_closest_node(temp_node):
 
 
 
-@Finder.app.route("/")
+@app.route("/")
 def home_page():
   return render_template('home.html')
 
-@Finder.app.route("/editor")
+@app.route("/editor")
 def editor():
   return render_template('editor.html')
 
-@Finder.app.route("/save", methods=["POST"])
+@app.route("/save", methods=["POST"])
 def save():
   with open("nodes.json", mode="wt") as nodes_file:
     nodes_file.write(str(request.data))
   response = {"status": 0}
   return jsonify(response)
 
-@Finder.app.route("/image")
+@app.route("/image")
 def image():
   return send_file('templates/imsa_hallway.jpg', mimetype="image/jpeg")
 
-@Finder.app.route("/home.css")
+@app.route("/home.css")
 def styles():
   return send_file('templates/home.css', mimetype="text/css")
 
-@Finder.app.route("/get_directions", methods=["POST"])
+@app.route("/get_directions", methods=["POST"])
 def directions():
   reset_nodes()
   start_room = name_to_id(request.json['start-room'])
@@ -114,5 +113,5 @@ def directions():
   return jsonify(path_json)
 
 if __name__ == "__main__":
-  Finder.run_server()
+  app.run(host='0.0.0.0', debug=True, port=31415)
 
