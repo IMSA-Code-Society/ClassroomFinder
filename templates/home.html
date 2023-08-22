@@ -13,7 +13,7 @@
   <body>
     <div class="map">
       <img class="hallway" src="/image" >
-      <canvas width="1728" height="2240"> </canvas>
+      <canvas width="1029" height="1182"> </canvas>
       
     </div>
     <div class="filler_box"></div>
@@ -70,6 +70,7 @@
               context.moveTo(json[i - 1]["x"], json[i - 1]["y"]);
               context.lineTo(json[i]["x"], json[i]["y"]);
               context.strokeStyle = "green";
+              context.lineWidth = 5;
               context.stroke();
             }
           })

@@ -90,7 +90,7 @@ def save():
 
 @app.route("/image")
 def image():
-  return send_file('templates/imsa_hallway.jpg', mimetype="image/jpeg")
+  return send_file('templates/map.png', mimetype="image/png")
 
 @app.route("/home.css")
 def styles():
@@ -108,7 +108,7 @@ def directions():
   for index in shortest_path:
     x_coordinate = nodes[index].x
     y_coordinate = nodes[index].y
-    node = {"x": x_coordinate, "y": y_coordinate}
+    node = {"x": x_coordinate, "y": y_coordinate, "name": nodes[index].name, "index": index}
     path_json.append(node)
   return jsonify(path_json)
 
