@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    canvas {
+      position: absolute;
+    }
+
+    .hallway {
+      position: absolute;
+    }
+  </style>
+</head>
+
+<body>
+  <button onclick="save_nodes()">Save all nodes</button>
+  <img class="hallway" src="/image" />
+  <canvas width="1029" height="1182"> </canvas>
+  <script>
+
+    console.log("hello");
+    const canvas = document.getElementsByTagName("canvas")[0];
+    const context = canvas.getContext("2d");
+
+    let nodes_array = []
+    let id_increment = 0
+    let mouse_state = true
+    let set_connection = null
+    canvas.addEventListener("mousedown", (current_click) => {
+
+      const rect = canvas.getBoundingClientRect();
+      let x = current_click.clientX - rect.left;
+      let y = current_click.clientY - rect.top;
+      let click_existing = false;
+
+      for (let i = 0; i < nodes_array.length; i++) {
+        let distance = Math.sqrt(Math.pow(nodes_array[i]['x'] - x, 2) + Math.pow(nodes_array[i]['y'] - y, 2))
+        if (distance < 10) {
+          click_existing = true;
+          if (mouse_state == true) {
+            set_connection = nodes_array[i]
+            mouse_state = false
+
+          }
+          else {
+            distance = Math.sqrt(Math.pow(nodes_array[i]['x'] - set_connection['x'], 2) + Math.pow(nodes_array[i]['y'] - set_connection['y'], 2))
+            nodes_array[i]['neighbor_nodes'].push([set_connection['id'], distance])
+            for (let j = 0; j < nodes_array.length; j++) {
+              if (nodes_array[j]['id'] == set_connection['id']) {
+
+                nodes_array[j]['neighbor_nodes'].push([nodes_array[i]['id'], distance])
+                context.moveTo(nodes_array[i]['x'], nodes_array[i]['y']);
+                context.lineTo(nodes_array[j]['x'], nodes_array[j]['y']);
+                context.strokeStyle = "green";
+                context.stroke();
+                mouse_state = true
+              }
+            }
+
+          }
+        }
+
+      };
+      if (click_existing == true) {
+        return
+      }
+      context.beginPath();
+      context.arc(x, y, 10, 0, 2 * Math.PI);
+      context.strokeStyle = "green";
+      context.fillStyle = "green";
+      context.fill();
+      context.stroke();
+      let user_input = prompt("Node name: ")
+      nodes_array.push({
+        x: x,
+        y: y,
+        name: user_input,
+        id: id_increment++,
+        neighbor_nodes: []
+      })
+      console.log(nodes_array)
+
+    });
+    const save_nodes = () => {
+      fetch("/save", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(nodes_array)
+      }).then(data => { return data.json() })
+        .then(json => { console.log(json) })
+        .catch(err => { console.log(err) })
+    }
+  </script>
+</body>
+
+</html>
