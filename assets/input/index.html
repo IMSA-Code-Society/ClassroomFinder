@@ -1,18 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schedule Input</title>
-    <script src="assets/input/script.js" defer></script>
+    <script>document.addEventListener('DOMContentLoaded', () => {
+            console.log('Script loaded'); // Confirm script loading
+            document.getElementById('scheduleForm').addEventListener('submit', function (e) {
+                e.preventDefault(); // Prevent the default form submission action
+                console.log('Form submitted'); // Confirm form submission is intercepted
+
+                const scheduleInput = document.getElementById('scheduleInput').value;
+                const pathOutput = document.getElementById('pathOutput');
+                const errorOutput = document.getElementById('errorOutput');
+
+                try {
+
+                    fetch("/schedule-post", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            "Schedule Input": scheduleInput,
+                        }),
+                    })
+                        .then((data) => data.json())
+                        .then((json) => {
+                            console.log("Received JSON:", json);
+                            if (json.status == 1) {
+                                document.getElementById("errorOutput").innerHTML = "Error. Could not get schedule.";
+                                return;
+                            }
+                            let pathHtml = '<p>Path:</p>';
+
+
+                            json["Schedule Input"].forEach((day, i) => {
+                                pathHtml += `<div><p>Day ${i + 1}:</p><ul>`;
+                                day.forEach((room, j) => {
+                                    pathHtml += `<li>Module ${j + 1}: ${room || 'N/A'}</li>`;
+                                });
+                                pathHtml += `</ul></div>`;
+                            });
+
+
+                            pathOutput.innerHTML = pathHtml;
+                            errorOutput.innerHTML = ''; // Clear any previous errors
+
+                        })
+                        .catch((err) => {
+                            console.log("Fetch error:", err);
+                        });
+                } catch (error) {
+                    errorOutput.innerHTML = `Error: ${error.message}`;
+                    pathOutput.innerHTML = ''; // Clear any previous path
+                }
+            });
+        });
+    </script>
 </head>
+
 <body>
     <form id="scheduleForm">
-        <textarea id="scheduleInput" placeholder="Enter schedule..." rows="20" cols="120"></textarea>
+        <textarea id="scheduleInput" placeholder="Enter schedule..." rows="20%" cols="130%"></textarea>
         <p></p>
         <button type="submit">Submit</button>
     </form>
     <div id="pathOutput"></div>
     <div id="errorOutput"></div>
+
 </body>
+
 </html>
