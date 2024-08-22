@@ -12,4 +12,13 @@ image = "0.25.2"
 axum = {version = "0.7.5", features = ["multipart"]}
 shuttle-axum = "0.47.0"
 tower-http = { version = "0.5.2", features = ["fs"] }
+actix-files = "0.6.6"
+actix-multipart = "0.7.2"
+actix-web = "4.9.0"
+futures = "0.3.30"
+shuttle-actix-web = "0.47.0"
+shuttle-shared-db = { version = "0.47.0", features = ["postgres"] }
+yew = "0.21.0"
+log = "0.4.22"
+web-sys = "0.3.70"
 
