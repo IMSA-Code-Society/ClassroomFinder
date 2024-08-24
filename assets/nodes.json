@@ -2418,7 +2418,7 @@
     {
         "x": 423.5625,
         "y": 654,
-        "name": "pqqq",
+        "name": "auditorium hallway",
         "id": 131,
         "neighbor_nodes": [
             [
@@ -2438,7 +2438,7 @@
     {
         "x": 423.5625,
         "y": 597,
-        "name": "bnvbnvbn",
+        "name": "hallway",
         "id": 132,
         "neighbor_nodes": [
             [
@@ -2454,7 +2454,7 @@
     {
         "x": 443.5625,
         "y": 586,
-        "name": "sdfghj",
+        "name": "hallway",
         "id": 133,
         "neighbor_nodes": [
             [
@@ -2474,7 +2474,7 @@
     {
         "x": 439.5625,
         "y": 521,
-        "name": "mnbmvdsf",
+        "name": "hallway",
         "id": 134,
         "neighbor_nodes": [
             [

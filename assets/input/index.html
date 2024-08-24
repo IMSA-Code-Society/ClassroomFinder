@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,24 +7,20 @@
     <link rel="stylesheet" href="/assets/home.css">
     <script src="/assets/input/script.js" defer></script>
 </head>
-
 <body style="background-color:rgb(107, 130, 172);">
 
+    <!-- Zoom buttons -->
+    <div class="zoom-buttons">
+        <button id="zoomIn">+</button>
+        <button id="zoomOut">-</button>
+    </div>
 
     <div class="map">
-
         <img id="hallwayImage" class="hallway" src="/image" alt="Hallway Image">
-
         <canvas id="myCanvas" width="1029" height="1182"></canvas>
-
     </div>
 
-
-
-    </div>
-
-    <div style="background-color:darkcyan; text-align: center;">
-
+    <div style="background-color:#0056b3; text-align: center;">
         <form id="scheduleForm">
             <textarea id="scheduleInput" placeholder="Enter schedule..." rows="10%" cols="150%"
                 style="background-color:rgb(85, 87, 137);"></textarea>
@@ -48,13 +42,9 @@
                     </p>
                 </div>
             </div>
-            <button id="zoomIn">Zoom In</button>
-            <button id="zoomOut">Zoom Out</button>
         </form>
-
-
     </div>
-</body>
-<div id="tooltip" class="tooltip"></div>
 
+    <div id="tooltip" class="tooltip"></div>
+</body>
 </html>
