@@ -2,11 +2,21 @@ canvas {
   position: absolute;
   width: 200%;
 }
+
 .hallway {
   position: absolute;
   width: 200%;
 }
-body{
+.tooltip {
+  position: absolute;
+  display: none;
+  border: 1px solid green;
+  background-color: green;
+  padding: 5px;
+  z-index: 1000;
+  /* Ensure the tooltip is above other content */
+}
+body {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -14,21 +24,24 @@ body{
   margin: 0;
   align-items: center;
 }
-.map::-webkit-scrollbar{
+
+.map::-webkit-scrollbar {
   display: none;
 }
-.filler_box{
+
+.filler_box {
   width: 100vw;
   height: 25vh;
 }
-.map{
+
+.map {
   overflow: auto;
   width: 100%;
   height: 75%;
   position: relative;
 }
 
-.input_response{
+.input_response {
   position: fixed;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.1);
@@ -39,7 +52,7 @@ body{
   align-items: center;
   justify-content: center;
   z-index: 1;
-  
+
 }
 
 /*
@@ -54,57 +67,64 @@ body{
   justify-content: center;
 }
 */
-.input_response_contents{
+.input_response_contents {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   gap: 20px 10px;
 }
-input:focus{
+
+input:focus {
   outline: none;
 }
 
-#message{
+#message {
   background-color: yellow;
   text-align: center;
   width: fit-content;
   margin: auto;
 }
-.message_box{
+
+.message_box {
   width: 100%;
 }
 
-.path_button{
+.path_button {
   box-shadow: 0 5px 9px rgba(0, 0, 0, 0.577);
   transition: 0.075s;
 }
-.path_button:active{
+
+.path_button:active {
   margin-top: 3px;
   box-shadow: none;
 }
 
 @media only screen and (max-width: 768px) {
-.warning_box,
-.warning{
-  display: none;
+
+  .warning_box,
+  .warning {
+    display: none;
+  }
 }
-}
+
 @media only screen and (min-width: 768px) {
-.warning_box{
-  display: flex;
-  background-color: blue;
-  width: 100%;
-  height: 100%;
-  position: fixed;
-  justify-content: center;
-  align-items: center;
-  z-index: 3;
+  .warning_box {
+    display: flex;
+    background-color: blue;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    justify-content: center;
+    align-items: center;
+    z-index: 3;
+  }
+
+  .warning {
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
-.warning{
-  background-color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-}
+
