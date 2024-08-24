@@ -89,7 +89,6 @@ input:focus {
 }
 
 .path_button {
-  box-shadow: 0 5px 9px rgba(0, 0, 0, 0.577);
   transition: 0.075s;
 }
 

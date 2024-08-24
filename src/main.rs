@@ -193,41 +193,108 @@ mod webpages {
         web::Json(request): web::Json<serde_json::Value>,
     ) -> impl Responder {
         let user_input = request["Schedule Input"].as_str().unwrap();
-        let schedule: [[String; 8]; 5] = path(&get_schedule(user_input).unwrap());
+        let (sem1, sem2) = match get_schedule(user_input) {
+            (Ok(sem1), Ok(sem2)) => (sem1, sem2),
+            (Ok(_), Err(err)) | (Err(err), Ok(_)) => {
+                return HttpResponse::BadRequest()
+                    .json(serde_json::json!({"status": 1, "error_message": err,}))
+            }
+            (Err(err1), Err(err2)) => {
+                let full_err = format!("Semester 1 error: {err1} \nSemester 2 error: {err2}");
+                return HttpResponse::BadRequest()
+                    .json(serde_json::json!({"status": 1, "error_message": full_err,}));
+            }
+        };
+
+        let schedule_1: [[String; 8]; 5] = match path(&sem1) {
+            Ok(result) => result,
+            Err(err) => {
+                return HttpResponse::BadRequest()
+                    .json(serde_json::json!({"status": 1, "error_message": err,}))
+            }
+        };
+        let schedule_2: [[String; 8]; 5] = match path(&sem2) {
+            Ok(result) => result,
+            Err(err) => {
+                return HttpResponse::BadRequest()
+                    .json(serde_json::json!({"status": 1, "error_message": err,}))
+            }
+        };
 
         let mut nodes: Vec<Node> =
             file_utils::read_nodes_from_file("assets/nodes.json").expect("Failed to read nodes");
 
         reset_nodes(&mut nodes);
-        let (path_master_vec, nodes) = node_find_func(&schedule, nodes);
-        let json = build_schedule_json(path_master_vec, &nodes);
+        let (path_master_vec_1, nodes) = match node_find_func(&schedule_1, nodes) {
+            Ok(result) => result,
+            Err(err) => {
+                return HttpResponse::BadRequest()
+                    .json(serde_json::json!({"status": 1, "error_message": err,}));
+            }
+        };
+        let (path_master_vec_2, nodes) = match node_find_func(&schedule_2, nodes) {
+            Ok(result) => result,
+            Err(err) => {
+                return HttpResponse::BadRequest()
+                    .json(serde_json::json!({"status": 1, "error_message": err,}));
+            }
+        };
+        let json = build_schedule_json(path_master_vec_1, path_master_vec_2, &nodes);
 
         HttpResponse::Ok().json(json)
     }
 
-    fn build_schedule_json(path_master_vec: DailyNode, nodes: &[Node]) -> serde_json::Value {
-        let day_vecs = [
-            path_master_vec.anode,
-            path_master_vec.bnode,
-            path_master_vec.inode,
-            path_master_vec.cnode,
-            path_master_vec.dnode,
+    fn build_schedule_json(
+        path_master_vec_1: DailyNode,
+        path_master_vec_2: DailyNode,
+        nodes: &[Node],
+    ) -> serde_json::Value {
+        let day_vecs1 = [
+            path_master_vec_1.anode,
+            path_master_vec_1.bnode,
+            path_master_vec_1.inode,
+            path_master_vec_1.cnode,
+            path_master_vec_1.dnode,
+        ];
+        let day_vecs2 = [
+            path_master_vec_2.anode,
+            path_master_vec_2.bnode,
+            path_master_vec_2.inode,
+            path_master_vec_2.cnode,
+            path_master_vec_2.dnode,
         ];
         let day_names = ["aday", "bday", "iday", "cday", "dday"];
 
-        let mut json = serde_json::json!({});
+        let mut json1: serde_json::Value = serde_json::json!({});
+        let mut json2: serde_json::Value = serde_json::json!({});
 
-        for (day_name, day_vec) in day_names.iter().zip(day_vecs.iter()) {
+        for (day_name, day_vec) in day_names.iter().zip(day_vecs1.iter()) {
             if let Some(val) = day_vec {
                 let day_paths: Vec<Vec<serde_json::Value>> = val
                     .iter()
                     .map(|secval| build_path_json(secval, nodes))
                     .collect();
-                json[day_name] = serde_json::json!(day_paths);
+                json1[day_name] = serde_json::json!(day_paths);
             }
         }
+        for (day_name, day_vec) in day_names.iter().zip(day_vecs2.iter()) {
+            if let Some(val) = day_vec {
+                let day_paths: Vec<Vec<serde_json::Value>> = val
+                    .iter()
+                    .map(|secval| build_path_json(secval, nodes))
+                    .collect();
+                json2[day_name] = serde_json::json!(day_paths);
+            }
+        }
+        let final_json = serde_json::json!(
+            {
+                "Semester 1": json1,
+                "Semester 2": json2
 
-        json
+            }
+        );
+
+        final_json
     }
 }
 
@@ -268,7 +335,10 @@ async fn shuttle_main(
     Ok(shuttle_actix_web::ActixWebService(factory))
 }
 
-fn node_find_func(schedule: &[[String; 8]; 5], mut nodes: Vec<Node>) -> (DailyNode, Vec<Node>) {
+fn node_find_func(
+    schedule: &[[String; 8]; 5],
+    mut nodes: Vec<Node>,
+) -> Result<(DailyNode, Vec<Node>), String> {
     let mut master_vec: Vec<Vec<[usize; 2]>> = Vec::new();
 
     for day in schedule {
@@ -282,14 +352,14 @@ fn node_find_func(schedule: &[[String; 8]; 5], mut nodes: Vec<Node>) -> (DailyNo
                 continue;
             }
 
-            let start_room = name_to_id(class, &nodes).unwrap();
+            let start_room = name_to_id(class, &nodes)
+                .ok_or(format!("The room '{class}' was not recognized"))?;
 
             for offset in 1..8 - num {
                 if let Some(next_class) = day.get(num + offset) {
                     if !next_class.is_empty() {
-                        let Some(next_room) = name_to_id(&next_class.to_lowercase(), &nodes) else {
-                            panic!("Failed to get id for room {}", next_class.to_lowercase())
-                        };
+                        let next_room = name_to_id(&next_class.to_lowercase(), &nodes)
+                            .ok_or(format!("The room '{next_class}' was not recognized"))?;
                         if start_room != next_room {
                             vec.push([start_room, next_room]);
                         }
@@ -323,10 +393,10 @@ fn node_find_func(schedule: &[[String; 8]; 5], mut nodes: Vec<Node>) -> (DailyNo
             2 => dailynode.inode = Some(dayvec),
             3 => dailynode.cnode = Some(dayvec),
             4 => dailynode.dnode = Some(dayvec),
-            _ => panic!("Unexpected day index"),
+            _ => return Err(format!("Unexpected num {num}")),
         }
     }
-    (dailynode, nodes)
+    Ok((dailynode, nodes))
 }
 
 #[derive(Debug)]
