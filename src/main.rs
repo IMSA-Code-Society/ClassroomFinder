@@ -111,7 +111,7 @@ mod webpages {
     use tokio::io::AsyncWriteExt;
 
     pub async fn home_page() -> impl Responder {
-        serve_html("assets/home.html")
+        serve_html("assets/path/home.html")
     }
 
     pub async fn input() -> impl Responder {
@@ -119,10 +119,10 @@ mod webpages {
     }
 
     pub async fn editor() -> impl Responder {
-        serve_html("assets/editor.html")
+        serve_html("assets/editor/editor.html")
     }
     pub async fn about() -> impl Responder {
-        serve_html("assets/about.html")
+        serve_html("assets/about/about.html")
     }
 
     pub async fn image() -> impl Responder {
@@ -132,18 +132,14 @@ mod webpages {
     }
 
     pub async fn css_handler() -> impl Responder {
-        serve_css("assets/home.css").await
+        let css = tokio::fs::read_to_string("assets/home.css").await.unwrap();
+        HttpResponse::Ok().content_type("text/css").body(css)
     }
 
     fn serve_html(path: &str) -> impl Responder {
         HttpResponse::Ok()
             .content_type("text/html")
             .body(std::fs::read_to_string(path).unwrap())
-    }
-
-    async fn serve_css(path: &str) -> impl Responder {
-        let css = tokio::fs::read_to_string(path).await.unwrap();
-        HttpResponse::Ok().content_type("text/css").body(css)
     }
 
     pub async fn save(mut payload: Multipart) -> Result<HttpResponse> {
