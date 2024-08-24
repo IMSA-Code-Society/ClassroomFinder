@@ -10,12 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
         7: "black",
     };
 
-    console.log('Script loaded'); // Confirm script loading
-
-    let scaleFactor = 1.2;  // Defines the zoom factor
-    let currentScale = 1;   // Keeps track of the current zoom level
-    let originX = 0;        // X-coordinate for zoom origin
-    let originY = 0;        // Y-coordinate for zoom origin
+    let scaleFactor = 1.2;
+    let currentScale = 1;
+    let originX = 0;
+    let originY = 0;
 
     const canvas = document.getElementById("myCanvas");
     const context = canvas.getContext("2d");
@@ -32,15 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const rect = canvas.getBoundingClientRect();
 
-        // Adjust origin to zoom towards the center of the canvas
         originX = (rect.width / 2 - (rect.width / 2 - originX * factor));
         originY = (rect.height / 2 - (rect.height / 2 - originY * factor));
 
-        // Clear the canvas before applying new transformation
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.clearRect(0, 0, canvas.width, canvas.height);
         context.setTransform(currentScale, 0, 0, currentScale, originX, originY);
-        context.clearRect(-originX, -originY, canvas.width, canvas.height);
-
-        // Redraw all elements
         redrawAll();
     }
 
@@ -52,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function syncImageTransform() {
-        // Ensure the image's transformation matches the canvas' current scale and position
         image.style.transform = `scale(${currentScale})`;
         image.style.transformOrigin = `0 0`;
         image.style.left = `${originX}px`;
@@ -60,14 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('scheduleForm').addEventListener('submit', function (e) {
-        e.preventDefault(); // Prevent the default form submission action
-        console.log('Form submitted'); // Confirm form submission is intercepted
+        e.preventDefault();
 
         const scheduleInput = document.getElementById('scheduleInput').value;
         const selectedDay = document.getElementById('daySelector').value;
 
-        circles.length = 0; // Clear any previous circles
-        paths = []; // Clear any previous paths
+        circles.length = 0;
+        paths = [];
 
         fetch("/schedule-post", {
             method: "POST",
@@ -81,11 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
             .then((data) => data.json())
             .then((json) => {
                 if (json.status == 1) {
-                    console.log("Couldn't get path sorry :I");
                     return;
                 }
-                const xShift = 3; // Shift in the x direction
-                const yShift = 3; // Shift in the y direction
+                const xShift = 3;
+                const yShift = 3;
 
                 context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -106,17 +98,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         context.stroke();
                         context.closePath();
 
-                        // Store the path points for redrawing later
                         pathPoints.push({ startX, startY, endX, endY, color: colorMap[curnum] });
 
-                        // Draw a small circle at the starting point where the line changes direction
                         context.beginPath();
                         context.arc(startX, startY, 4, 0, 2 * Math.PI, false);
                         context.fillStyle = colorMap[curnum];
                         context.fill();
                         context.closePath();
 
-                        // Store circle data
                         circles.push({
                             x: startX,
                             y: startY,
@@ -126,12 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                     }
 
-                    // Ensure the last point is handled correctly
                     if (path.length > 1) {
                         const finalX = path[path.length - 1]["x"] + curnum * xShift;
                         const finalY = path[path.length - 1]["y"] + curnum * yShift;
 
-                        // Store only the final point without drawing an extra line
                         pathPoints.push({ startX: finalX, startY: finalY, endX: finalX, endY: finalY, color: colorMap[curnum] });
 
                         context.beginPath();
@@ -149,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                     }
 
-                    // Save the entire path for later redrawing
                     paths.push(pathPoints);
                 });
 
@@ -160,28 +146,48 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    canvas.addEventListener('mousemove', function (e) {
-        const { mouseX, mouseY } = getMousePosition(e, canvas);
-        redrawAll(); // Clear and redraw the canvas
-
-        circles.forEach(circle => {
-            if (isMouseOverCircle(mouseX, mouseY, circle)) {
-                context.font = "28px Arial";
-                context.fillStyle = circle.color;
-                context.fillText(circle.name, circle.x * currentScale + 10, circle.y * currentScale + 5); // Display the name when hovering
-            }
-        });
-    });
+    const tooltip = document.getElementById('tooltip');
 
     function getMousePosition(event, canvas) {
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width / currentScale;
-        const scaleY = canvas.height / rect.height / currentScale;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        const canvasX = (event.clientX - rect.left) * scaleX;
+        const canvasY = (event.clientY - rect.top) * scaleY;
+
         return {
-            mouseX: (event.clientX - rect.left) * scaleX - originX / currentScale,
-            mouseY: (event.clientY - rect.top) * scaleY - originY / currentScale
+            mouseX: (canvasX - originX) / currentScale,
+            mouseY: (canvasY - originY) / currentScale
         };
     }
+
+    canvas.addEventListener('mousemove', function (e) {
+        const { mouseX, mouseY } = getMousePosition(e, canvas);
+        let tooltipVisible = false;
+
+        circles.forEach(circle => {
+            if (isMouseOverCircle(mouseX, mouseY, circle)) {
+                tooltip.style.display = 'block';
+
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+
+                const tooltipX = e.clientX + window.scrollX;
+                const tooltipY = e.clientY + window.scrollY;
+
+                tooltip.style.left = `${tooltipX}px`;
+                tooltip.style.top = `${tooltipY}px`;
+                tooltip.innerHTML = `<strong>${circle.name}</strong>`;
+                tooltipVisible = true;
+            }
+        });
+
+        if (!tooltipVisible) {
+            tooltip.style.display = 'none';
+        }
+    });
 
     function isMouseOverCircle(mouseX, mouseY, circle) {
         const distance = Math.sqrt((mouseX - circle.x) ** 2 + (mouseY - circle.y) ** 2);
@@ -191,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function redrawPaths(context, paths) {
         paths.forEach(path => {
             path.forEach((segment, index) => {
-                // Only draw if start and end points are different
                 if (segment.startX !== segment.endX || segment.startY !== segment.endY) {
                     context.beginPath();
                     context.moveTo(segment.startX, segment.startY);
@@ -201,8 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     context.stroke();
                     context.closePath();
                 }
-
-                // Avoid drawing an unnecessary line at the last node
                 if (index === path.length - 1) {
                     context.beginPath();
                     context.arc(segment.endX, segment.endY, 4, 0, 2 * Math.PI, false);
