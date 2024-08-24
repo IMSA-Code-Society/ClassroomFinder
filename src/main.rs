@@ -3,7 +3,9 @@ use actix_web::web;
 use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 use std::path::Path;
-use webpages::{about, css_handler, directions, editor, home_page, image, input, save, schedule_handle};
+use webpages::{
+    about, css_handler, directions, editor, home_page, image, input, save, schedule_handle,
+};
 mod path;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -138,7 +140,6 @@ mod webpages {
             .content_type("text/html")
             .body(std::fs::read_to_string(path).unwrap())
     }
-    
 
     async fn serve_css(path: &str) -> impl Responder {
         let css = tokio::fs::read_to_string(path).await.unwrap();
@@ -301,7 +302,6 @@ fn node_find_func(schedule: &[[String; 8]; 5], mut nodes: Vec<Node>) -> (DailyNo
         master_vec.push(vec);
     }
 
-    
     let mut dailynode = DailyNode {
         anode: None,
         bnode: None,
