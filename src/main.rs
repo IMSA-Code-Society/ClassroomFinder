@@ -147,10 +147,11 @@ mod webpages {
     }
 
     pub async fn save(mut payload: Multipart) -> Result<HttpResponse> {
+        println!("Saving...");
         while let Ok(Some(mut field)) = payload.try_next().await {
             if let Some("file") = field.name() {
                 let data = field.next().await.unwrap().unwrap();
-                let mut file = tokio::fs::File::create("nodes.json").await.unwrap();
+                let mut file = tokio::fs::File::create("assets/nodes.json").await.unwrap();
                 file.write_all(&data).await.unwrap();
             }
         }
@@ -290,7 +291,9 @@ fn node_find_func(schedule: &[[String; 8]; 5], mut nodes: Vec<Node>) -> (DailyNo
             for offset in 1..8 - num {
                 if let Some(next_class) = day.get(num + offset) {
                     if !next_class.is_empty() {
-                        let next_room = name_to_id(&next_class.to_lowercase(), &nodes).unwrap();
+                        let Some(next_room) = name_to_id(&next_class.to_lowercase(), &nodes) else {
+                            panic!("Failed to get id for room {}", next_class.to_lowercase())
+                        };
                         if start_room != next_room {
                             vec.push([start_room, next_room]);
                         }

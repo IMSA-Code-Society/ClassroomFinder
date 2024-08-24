@@ -18,8 +18,17 @@ pub fn get_schedule(input: &str) -> Result<Vec<Class>, &str> {
     if listvec.len() <= 2 {
         return Err("Not enough arguments");
     }
+    listvec.retain(|line| !line.trim().is_empty());
 
-    listvec = listvec[2..].to_vec();
+    if listvec[0].contains("Semester") {
+        listvec = listvec[1..].to_vec();
+        if listvec[0].contains("Teacher") && listvec[0].contains("Crs-Sec") {
+            listvec = listvec[1..].to_vec();
+        }
+    } else if listvec[0].contains("Teacher") && listvec[0].contains("Crs") {
+        listvec = listvec[1..].to_vec();
+    }
+
 
     let mut mods = Vec::new();
     let mut semester = Vec::new();
@@ -32,8 +41,12 @@ pub fn get_schedule(input: &str) -> Result<Vec<Class>, &str> {
 
     for line in listvec {
         let line = line.replace("    ", "\t");
-        let split: Vec<String> = line.split('\t').map(|s| s.trim().to_string()).collect();
-        assert!(split.len() >= 8, "Unexpected format: {line}");
+        let split: Vec<String> = line
+            .trim()
+            .split('\t')
+            .map(|s| s.trim().to_string())
+            .collect();
+
         mods.push(split[0].clone());
         semester.push(split[1].clone());
         short_name.push(split[2].clone());
