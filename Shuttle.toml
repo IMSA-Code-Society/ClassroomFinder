@@ -1,2 +1,3 @@
 assets = ["assets/*"]
+project_name = "class-find"
 
