@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const scheduleInput = document.getElementById('scheduleInput').value;
         const selectedDay = document.getElementById('daySelector').value;
-
+        const semester_type = document.getElementById('semSelector').value;
         circles.length = 0;
         paths = [];
 
@@ -82,15 +82,21 @@ document.addEventListener('DOMContentLoaded', () => {
             .then((data) => data.json())
             .then((json) => {
                 if (json.status == 1) {
+                    console.log("Here was the json: ", json)
+                    let errorMessage = `There was an error: ${json.error_message}`;
+                    console.log(errorMessage);
+                    document.getElementById('error_message').innerHTML = errorMessage;
+
                     return;
                 }
-                console.log(json);
+                let final_json = json[semester_type];
+                console.log(final_json);
                 const xShift = 3;
                 const yShift = 3;
 
                 context.clearRect(0, 0, canvas.width, canvas.height);
 
-                let curday = json[selectedDay];
+                let curday = final_json[selectedDay];
                 curday.forEach((path, curnum) => {
                     const pathPoints = [];
                     for (let i = 1; i < path.length; i++) {
@@ -149,9 +155,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 redrawAll();
+                document.getElementById('error_message').innerHTML = "";
             })
             .catch((err) => {
                 console.log("Fetch error:", err);
+                console.log(final_json);
+                
             });
     });
 

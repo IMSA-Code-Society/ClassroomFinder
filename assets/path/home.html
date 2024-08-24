@@ -16,9 +16,11 @@
   <div class="input_response">
     <div class="input_response_contents">
 
-      <div style="background-color:#0056b3; justify-content: center; gap: 20px; margin-top: 10px;">
-        <input id="start" list="rooms" type="text" placeholder="Enter Starting location">
-        <input id="end" list="rooms" type="text" placeholder="Enter Destination">
+      <div style=" justify-content: center; gap: 20px; margin-top: 10px;">
+        <input id="start" list="rooms" type="text" placeholder="Enter Starting location"
+          style="background-color: rgb(64, 65, 95);  border-width: 0;">
+        <input id="end" list="rooms" type="text" placeholder="Enter Destination"
+          style="background-color: rgb(64, 65, 95);  border-width: 0;">
         <datalist id="rooms">
           <option value="entrance"></option>
           <option value="auditorium"></option>
@@ -106,7 +108,7 @@
           <option value="e121"></option>
           <option value="e122"></option>
         </datalist>
-        <button class="path_button" onclick="find_directions()">
+        <button class="path_button" onclick="find_directions()" style="background-color: rgb(64, 65, 95);  border-width: 0;">
           Find Shortest Path
         </button>
         <div class="message_box">

@@ -9,16 +9,52 @@ Exp    Trm    Crs-Sec    Course Name    Teacher    Room    Enroll    Leave
 7(A-D)    S1    MAT473-2    Linear Algebra    Brummet, Evan    A135    08/19/2024    01/19/2025
 8(A-D)    S1    MAT474-1    Abstract Algebra    Fogel, Micah    A155    08/19/2024    01/19/2025
 */
-pub fn get_schedule(input: &str) -> Result<Vec<Class>, &str> {
+fn split_semesters(input: &str) -> (String, String) {
+    let mut sem1 = String::new();
+    let mut sem2 = String::new();
+
+    let mut in_sem2 = false;
+
+    for line in input.lines() {
+        if line.contains("Semester 2") {
+            in_sem2 = true;
+        }
+        if in_sem2 {
+            sem2.push_str(line);
+            sem2.push('\n');
+        } else {
+            sem1.push_str(line);
+            sem1.push('\n');
+        }
+    }
+
+    (sem1.trim().to_string(), sem2.trim().to_string())
+}
+
+pub fn get_schedule(input: &str) -> (Result<Vec<Class>, String>, Result<Vec<Class>, String>) {
+    let (sem1, sem2) = split_semesters(input);
+    if sem1.is_empty() || sem2.is_empty() {
+        return (
+            Err("Please provide both semesters".to_owned()),
+            Ok(Vec::new()),
+        );
+    };
+    let sem_1_class = resolve_semester(sem1);
+    let sem_2_class = resolve_semester(sem2);
+    (sem_1_class, sem_2_class)
+}
+
+fn resolve_semester(input: String) -> Result<Vec<Class>, String> {
     let mut listvec: Vec<String> = input
         .lines()
         .map(std::string::ToString::to_string)
         .collect();
 
     if listvec.len() <= 2 {
-        return Err("Not enough arguments");
+        return Err("Not enough lines".to_owned());
     }
     listvec.retain(|line| !line.trim().is_empty());
+    listvec.retain(|line| !line.starts_with("RC") && !line.starts_with("CC"));
 
     if listvec[0].contains("Semester") {
         listvec = listvec[1..].to_vec();
@@ -29,7 +65,6 @@ pub fn get_schedule(input: &str) -> Result<Vec<Class>, &str> {
         listvec = listvec[1..].to_vec();
     }
 
-
     let mut mods = Vec::new();
     let mut semester = Vec::new();
     let mut short_name = Vec::new();
@@ -39,25 +74,28 @@ pub fn get_schedule(input: &str) -> Result<Vec<Class>, &str> {
     let mut start = Vec::new();
     let mut end = Vec::new();
 
-    for line in listvec {
+    for (num, line) in listvec.into_iter().enumerate() {
         let line = line.replace("    ", "\t");
         let split: Vec<String> = line
             .trim()
             .split('\t')
             .map(|s| s.trim().to_string())
             .collect();
-
-        mods.push(split[0].clone());
-        semester.push(split[1].clone());
-        short_name.push(split[2].clone());
-        long_name.push(split[3].clone());
-        teacher.push(split[4].clone());
-        room.push(split[5].clone());
-        start.push(split[6].clone());
-        end.push(split[7].clone());
+        if split.len() == 8 {
+            mods.push(split[0].clone());
+            semester.push(split[1].clone());
+            short_name.push(split[2].clone());
+            long_name.push(split[3].clone());
+            teacher.push(split[4].clone());
+            room.push(split[5].clone());
+            start.push(split[6].clone());
+            end.push(split[7].clone());
+        } else {
+            return Err(format!("Not enough arguments provided in line {num}"));
+        }
     }
 
-    Ok(sort_by_day(&ScheduleInfo {
+    sort_by_day(&ScheduleInfo {
         mods,
         semester,
         short_name,
@@ -66,10 +104,17 @@ pub fn get_schedule(input: &str) -> Result<Vec<Class>, &str> {
         room,
         start,
         end,
-    }))
+    })
 }
 
-fn parse_day(day_str: &str) -> Vec<Day> {
+use regex::Regex;
+
+fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
+    let re = Regex::new(r"^[ ABCDI,-]*$").unwrap();
+    if !re.is_match(day_str) {
+        return Err(format!("This day value is invalid: {}", day_str));
+    }
+
     let mut days = vec![];
     for day in day_str.split(',').map(str::trim) {
         match day {
@@ -79,22 +124,23 @@ fn parse_day(day_str: &str) -> Vec<Day> {
             "D" => days.push(Day::D),
             "I" => days.push(Day::I),
             _ => {
-                let (start, end) = day.split_at(1);
-                if let Some(start) = start.chars().next() {
-                    let end = end.trim_start_matches('-').chars().next();
-                    'here: for d in start..=end.unwrap_or(start) {
-                        let Some(result) = parse_day_char(d) else {
-                            break 'here;
-                        };
-                        days.push(result);
+                if let Some((start_char, rest)) = day.split_once('-') {
+                    let start = start_char.chars().next().unwrap();
+                    let end = rest.chars().next().unwrap_or(start);
+                    for d in start..=end {
+                        if let Some(result) = parse_day_char(d) {
+                            days.push(result);
+                        } else {
+                            return Err(format!("Unknown day pattern: {}", day));
+                        }
                     }
                 } else {
-                    panic!("Unknown day pattern: {day}")
+                    return Err(format!("Unknown day pattern: {}", day));
                 }
             }
         }
     }
-    days
+    Ok(days)
 }
 
 fn parse_day_char(ch: char) -> Option<Day> {
@@ -108,7 +154,12 @@ fn parse_day_char(ch: char) -> Option<Day> {
     }
 }
 
-fn parse_mods(mod_str: &str) -> Vec<u8> {
+fn parse_mods(mod_str: &str) -> Result<Vec<u8>, String> {
+    let re = Regex::new(r"^[a-zA-Z0-9-]*$").unwrap();
+
+    if !re.is_match(mod_str) {
+        return Err(format!("This mod value is invalid: {mod_str}"));
+    }
     let mut mods = vec![];
     for part in mod_str.split('-') {
         if let Some(start_char) = part.chars().next() {
@@ -121,27 +172,32 @@ fn parse_mods(mod_str: &str) -> Vec<u8> {
             }
         }
     }
-    mods
+    Ok(mods)
 }
 
-fn sort_by_day(schedule_info: &ScheduleInfo) -> Vec<Class> {
+fn sort_by_day(schedule_info: &ScheduleInfo) -> Result<Vec<Class>, String> {
     schedule_info
         .mods
         .iter()
         .enumerate()
         .map(|(item, mods_days)| {
             let (mod_str, day_str) = mods_days.split_once('(').unwrap();
-            let days = parse_day(day_str.trim_end_matches(')'));
-            let mods = parse_mods(mod_str);
+            let days = parse_day(day_str.trim_end_matches(')'))?;
+            let mods = parse_mods(mod_str)?;
 
-            Class {
+            Ok(Class {
                 days,
                 mods,
                 semester: match schedule_info.semester[item].as_str() {
                     "S1" => Semester::S1,
                     "S2" => Semester::S2,
                     "Y24-25" => Semester::Year,
-                    _ => panic!("Unknown semester: {}", schedule_info.semester[item]),
+                    _ => {
+                        return Err(format!(
+                            "Unknown semester '{}'",
+                            schedule_info.semester[item]
+                        ))
+                    }
                 },
                 short_name: schedule_info.short_name[item].clone(),
                 long_name: schedule_info.long_name[item].clone(),
@@ -149,12 +205,12 @@ fn sort_by_day(schedule_info: &ScheduleInfo) -> Vec<Class> {
                 room: schedule_info.room[item].clone(),
                 start: schedule_info.start[item].clone(),
                 end: schedule_info.end[item].clone(),
-            }
+            })
         })
         .collect()
 }
 
-pub fn path(weekly_schedule: &Vec<Class>) -> [[String; 8]; 5] {
+pub fn path(weekly_schedule: &Vec<Class>) -> Result<[[String; 8]; 5], String> {
     let mut weekly_path: [[String; 8]; 5] = [
         Default::default(),
         Default::default(),
@@ -170,7 +226,12 @@ pub fn path(weekly_schedule: &Vec<Class>) -> [[String; 8]; 5] {
             2 => Day::I,
             3 => Day::C,
             4 => Day::D,
-            _ => unreachable!("i hope this is unreachable"),
+            _ => {
+                return Err(format!(
+                    "If you are seeing this, things went really bad. 
+            DEBUG VAL {day}"
+                ))
+            }
         };
 
         for class in weekly_schedule {
@@ -192,7 +253,7 @@ pub fn path(weekly_schedule: &Vec<Class>) -> [[String; 8]; 5] {
         }
     }
 
-    weekly_path
+    Ok(weekly_path)
 }
 struct ScheduleInfo {
     mods: Vec<String>,

@@ -19,4 +19,5 @@ futures = "0.3.30"
 shuttle-actix-web = "0.47.0"
 log = "0.4.22"
 web-sys = "0.3.70"
+regex = "1.10.6"
 
