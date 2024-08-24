@@ -69,8 +69,11 @@ fn parse_day(day_str: &str) -> Vec<Day> {
                 let (start, end) = day.split_at(1);
                 if let Some(start) = start.chars().next() {
                     let end = end.trim_start_matches('-').chars().next();
-                    for d in start..=end.unwrap_or(start) {
-                        days.push(parse_day_char(d));
+                    'here: for d in start..=end.unwrap_or(start) {
+                        let Some(result) = parse_day_char(d) else {
+                            break 'here;
+                        };
+                        days.push(result);
                     }
                 } else {
                     panic!("Unknown day pattern: {day}")
@@ -81,14 +84,14 @@ fn parse_day(day_str: &str) -> Vec<Day> {
     days
 }
 
-fn parse_day_char(ch: char) -> Day {
+fn parse_day_char(ch: char) -> Option<Day> {
     match ch {
-        'A' => Day::A,
-        'B' => Day::B,
-        'C' => Day::C,
-        'D' => Day::D,
-        'I' => Day::I,
-        _ => panic!("Unknown day char: {ch}"),
+        'A' => Some(Day::A),
+        'B' => Some(Day::B),
+        'C' => Some(Day::C),
+        'D' => Some(Day::D),
+        'I' => Some(Day::I),
+        _ => None,
     }
 }
 
@@ -124,6 +127,7 @@ fn sort_by_day(schedule_info: &ScheduleInfo) -> Vec<Class> {
                 semester: match schedule_info.semester[item].as_str() {
                     "S1" => Semester::S1,
                     "S2" => Semester::S2,
+                    "Y24-25" => Semester::Year,
                     _ => panic!("Unknown semester: {}", schedule_info.semester[item]),
                 },
                 short_name: schedule_info.short_name[item].clone(),
@@ -192,6 +196,7 @@ struct ScheduleInfo {
 enum Semester {
     S1,
     S2,
+    Year,
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
