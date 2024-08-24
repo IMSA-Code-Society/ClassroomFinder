@@ -10,8 +10,6 @@ canvas {
 .tooltip {
   position: absolute;
   display: none;
-  border: 1px solid green;
-  background-color: green;
   padding: 5px;
   z-index: 1000;
   /* Ensure the tooltip is above other content */
@@ -128,3 +126,30 @@ input:focus {
   }
 }
 
+.zoom-buttons {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 10px;
+  z-index: 10000;
+}
+
+#zoomIn, #zoomOut {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgb(107, 130, 172);;
+  color: white;
+  border: none;
+  font-size: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#zoomIn:hover, #zoomOut:hover {
+  background-color: #0056b3;
+}

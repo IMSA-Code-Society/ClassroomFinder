@@ -25,6 +25,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("zoomIn").addEventListener("click", () => zoomCanvas(scaleFactor));
     document.getElementById("zoomOut").addEventListener("click", () => zoomCanvas(1 / scaleFactor));
 
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '+') {
+            zoomCanvas(scaleFactor);
+        } else if (e.key === '-') {
+            zoomCanvas(1 / scaleFactor);
+        }
+    });
+
     function zoomCanvas(factor) {
         currentScale *= factor;
 
@@ -76,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (json.status == 1) {
                     return;
                 }
+                console.log(json);
                 const xShift = 3;
                 const yShift = 3;
 
@@ -179,7 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 tooltip.style.left = `${tooltipX}px`;
                 tooltip.style.top = `${tooltipY}px`;
-                tooltip.innerHTML = `<strong>${circle.name}</strong>`;
+                tooltip.innerHTML = `
+                <div style="border: 1px solid ${circle.color}; background-color: ${circle.color};">
+                <strong>label: ${circle.name}</strong>
+                </div>`;
                 tooltipVisible = true;
             }
         });
