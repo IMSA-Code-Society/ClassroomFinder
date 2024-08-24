@@ -31,7 +31,7 @@ body{
 .input_response{
   position: fixed;
   bottom: 0;
-  background-color: rgba(0, 139, 173, 0.995);
+  background-color: rgba(0, 0, 0, 0.1);
   width: 100%;
   height: 25%;
   font-family: Arial;
