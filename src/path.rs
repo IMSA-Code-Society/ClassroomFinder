@@ -39,12 +39,12 @@ pub fn get_schedule(input: &str) -> (Result<Vec<Class>, String>, Result<Vec<Clas
             Ok(Vec::new()),
         );
     };
-    let sem_1_class = resolve_semester(sem1);
-    let sem_2_class = resolve_semester(sem2);
+    let sem_1_class = resolve_semester(&sem1);
+    let sem_2_class = resolve_semester(&sem2);
     (sem_1_class, sem_2_class)
 }
 
-fn resolve_semester(input: String) -> Result<Vec<Class>, String> {
+fn resolve_semester(input: &str) -> Result<Vec<Class>, String> {
     let mut listvec: Vec<String> = input
         .lines()
         .map(std::string::ToString::to_string)
@@ -112,7 +112,7 @@ use regex::Regex;
 fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
     let re = Regex::new(r"^[ ABCDI,-]*$").unwrap();
     if !re.is_match(day_str) {
-        return Err(format!("This day value is invalid: {}", day_str));
+        return Err(format!("This day value is invalid: {day_str}"));
     }
 
     let mut days = vec![];
@@ -131,11 +131,11 @@ fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
                         if let Some(result) = parse_day_char(d) {
                             days.push(result);
                         } else {
-                            return Err(format!("Unknown day pattern: {}", day));
+                            return Err(format!("Unknown day pattern: {day}"));
                         }
                     }
                 } else {
-                    return Err(format!("Unknown day pattern: {}", day));
+                    return Err(format!("Unknown day pattern: {day}"));
                 }
             }
         }
