@@ -191,11 +191,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const scheduleInput = document.getElementById('scheduleInput').value;
         const selectedDay = document.getElementById('daySelector').value;
         const semester_type = document.getElementById('semSelector').value;
+        const enter = document.getElementById('enterSelector').value;
+        const exit = document.getElementById('exitSelector').value;
+        const checkbox = document.getElementById('midday');
+        const isChecked = checkbox.checked;
 
+        console.log("lexington val: ", isChecked);
         fetch("/schedule-post", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "Schedule Input": scheduleInput }),
+            body: JSON.stringify({ "Schedule Input": scheduleInput , "Enter": enter, "Exit": exit, "LexMidday": isChecked}),
         })
             .then((data) => data.json())
             .then((json) => {
@@ -205,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const final_json = json[semester_type];
-                const xShift = 10, yShift = 10;
+                const xShift = 5, yShift = 5;
                 svg.innerHTML = '';
                 arrows.length = 0;
 

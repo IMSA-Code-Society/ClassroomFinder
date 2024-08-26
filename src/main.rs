@@ -103,7 +103,7 @@ mod webpages {
     use crate::{
         file_utils, name_to_id, path::get_schedule, path::path, pathfinding, reset_nodes, Node,
     };
-    use crate::{node_find_func, DailyNode};
+    use crate::{node_find_func, DailyNode, EnterExit};
     use actix_multipart::Multipart;
     use actix_web::{web, HttpResponse, Responder, Result};
     use futures::StreamExt as _;
@@ -193,6 +193,21 @@ mod webpages {
         web::Json(request): web::Json<serde_json::Value>,
     ) -> impl Responder {
         let user_input = request["Schedule Input"].as_str().unwrap();
+        let enter: EnterExit = match request["Enter"].as_str().unwrap() {
+            "west" => EnterExit::WestMain,
+            "east" => EnterExit::EastMain,
+            "d13" => EnterExit::D13,
+            "d6" => EnterExit::D6,
+            _ => panic!("Malformed json"),
+        };
+        let exit: EnterExit = match request["Exit"].as_str().unwrap() {
+            "west" => EnterExit::WestMain,
+            "east" => EnterExit::EastMain,
+            "d13" => EnterExit::D13,
+            "d6" => EnterExit::D6,
+            _ => panic!("Malformed json"),
+        };
+        let checked = request["LexMidday"].as_bool().unwrap();
         let (sem1, sem2) = match get_schedule(user_input) {
             (Ok(sem1), Ok(sem2)) => (sem1, sem2),
             (Ok(_), Err(err)) | (Err(err), Ok(_)) => {
@@ -225,20 +240,22 @@ mod webpages {
             file_utils::read_nodes_from_file("assets/nodes.json").expect("Failed to read nodes");
 
         reset_nodes(&mut nodes);
-        let (path_master_vec_1, nodes) = match node_find_func(&schedule_1, nodes) {
-            Ok(result) => result,
-            Err(err) => {
-                return HttpResponse::BadRequest()
-                    .json(serde_json::json!({"status": 1, "error_message": err,}));
-            }
-        };
-        let (path_master_vec_2, nodes) = match node_find_func(&schedule_2, nodes) {
-            Ok(result) => result,
-            Err(err) => {
-                return HttpResponse::BadRequest()
-                    .json(serde_json::json!({"status": 1, "error_message": err,}));
-            }
-        };
+        let (path_master_vec_1, nodes) =
+            match node_find_func(&schedule_1, nodes, &enter, &exit, checked) {
+                Ok(result) => result,
+                Err(err) => {
+                    return HttpResponse::BadRequest()
+                        .json(serde_json::json!({"status": 1, "error_message": err,}));
+                }
+            };
+        let (path_master_vec_2, nodes) =
+            match node_find_func(&schedule_2, nodes, &enter, &exit, checked) {
+                Ok(result) => result,
+                Err(err) => {
+                    return HttpResponse::BadRequest()
+                        .json(serde_json::json!({"status": 1, "error_message": err,}));
+                }
+            };
         let json = build_schedule_json(path_master_vec_1, path_master_vec_2, &nodes);
 
         HttpResponse::Ok().json(json)
@@ -334,17 +351,23 @@ async fn shuttle_main(
 
     Ok(shuttle_actix_web::ActixWebService(factory))
 }
-
+#[allow(clippy::too_many_lines)]
 fn node_find_func(
     schedule: &[[String; 8]; 5],
     mut nodes: Vec<Node>,
+    entrance: &EnterExit,
+    exit: &EnterExit,
+    checked: bool,
 ) -> Result<(DailyNode, Vec<Node>), String> {
-    let mut master_vec: Vec<Vec<[usize; 2]>> = Vec::new();
+    let mut master_vec: Vec<Vec<Option<[usize; 2]>>> = Vec::new();
 
     for day in schedule {
-        let mut vec: Vec<[usize; 2]> = Vec::new();
+        let mut vec: Vec<Option<[usize; 2]>> = Vec::new();
 
         for (num, mut class) in day.iter().enumerate() {
+            if num == 3 {
+                vec.push(None);
+            }
             let earlyclass = class.to_lowercase();
             class = &earlyclass;
 
@@ -361,7 +384,7 @@ fn node_find_func(
                         let next_room = name_to_id(&next_class.to_lowercase(), &nodes)
                             .ok_or(format!("The room '{next_class}' was not recognized"))?;
                         if start_room != next_room {
-                            vec.push([start_room, next_room]);
+                            vec.push(Some([start_room, next_room]));
                         }
                         break;
                     }
@@ -378,13 +401,64 @@ fn node_find_func(
         cnode: None,
         dnode: None,
     };
-
     for (num, day) in master_vec.into_iter().enumerate() {
         let mut dayvec: Vec<Vec<usize>> = Vec::new();
+        if day.get(num).is_some() {
+            let shortest_path_st = pathfinding::time_path(
+                {
+                    match entrance {
+                        EnterExit::WestMain => 146,
+                        EnterExit::EastMain => 0,
+                        EnterExit::D13 => 145,
+                        EnterExit::D6 => 147,
+                    }
+                },
+                match day.first().unwrap() {
+                    Some(val) => val[0],
+                    None => 55,
+                },
+                &mut nodes,
+            );
+            dayvec.push(shortest_path_st);
+        }
 
-        for vecpath in day {
-            let shortest_path = pathfinding::time_path(vecpath[0], vecpath[1], &mut nodes);
-            dayvec.push(shortest_path);
+        for (iter, vecpath) in day.clone().into_iter().enumerate() {
+            if vecpath.is_none() {
+                if checked && day[iter.saturating_sub(1)].is_some() {
+                    let to_lex: Vec<usize> = pathfinding::time_path(
+                        day[iter.saturating_sub(1)].unwrap()[1],
+                        55,
+                        &mut nodes,
+                    );
+                    let from_lex: Vec<usize> =
+                        pathfinding::time_path(55, day[iter + 1].unwrap()[1], &mut nodes);
+                    dayvec.push(to_lex);
+                    dayvec.push(from_lex);
+                }
+                
+            } else {
+                let shortest_path =
+                    pathfinding::time_path(vecpath.unwrap()[0], vecpath.unwrap()[1], &mut nodes);
+                dayvec.push(shortest_path);
+            }
+        }
+        if day.get(num).is_some() {
+            let shortest_path_en = pathfinding::time_path(
+                match day.last().unwrap() {
+                    Some(result) => result[1],
+                    None => 55,
+                },
+                {
+                    match exit {
+                        EnterExit::WestMain => 146,
+                        EnterExit::EastMain => 0,
+                        EnterExit::D13 => 145,
+                        EnterExit::D6 => 147,
+                    }
+                },
+                &mut nodes,
+            );
+            dayvec.push(shortest_path_en);
         }
 
         match num {
@@ -406,4 +480,11 @@ struct DailyNode {
     inode: Option<Vec<Vec<usize>>>,
     cnode: Option<Vec<Vec<usize>>>,
     dnode: Option<Vec<Vec<usize>>>,
+}
+
+enum EnterExit {
+    WestMain,
+    EastMain,
+    D13,
+    D6,
 }

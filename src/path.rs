@@ -252,7 +252,7 @@ pub fn path(weekly_schedule: &Vec<Class>) -> Result<[[String; 8]; 5], String> {
             }
         }
     }
-
+    
     Ok(weekly_path)
 }
 struct ScheduleInfo {
