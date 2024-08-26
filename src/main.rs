@@ -435,11 +435,15 @@ fn node_find_func(
                     dayvec.push(to_lex);
                     dayvec.push(from_lex);
                 }
-                
             } else {
-                let shortest_path =
-                    pathfinding::time_path(vecpath.unwrap()[0], vecpath.unwrap()[1], &mut nodes);
-                dayvec.push(shortest_path);
+                if day[iter.saturating_sub(1)].is_some() {
+                    let shortest_path = pathfinding::time_path(
+                        vecpath.unwrap()[0],
+                        vecpath.unwrap()[1],
+                        &mut nodes,
+                    );
+                    dayvec.push(shortest_path);
+                }
             }
         }
         if day.get(num).is_some() {
