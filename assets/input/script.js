@@ -32,11 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
         image.style.transform = scaleStr;
     }
 
-    function drawArrow(x1, y1, x2, y2, color, pathDetails, isStart, isEnd) {
+    function drawArrow(num, x1, y1, x2, y2, color, pathDetails, isStart, isEnd) {
+        console.log(pathDetails);
         const arrowLength = 12 * manualScaleFactor * currentScale;
         const arrowWidth = 8 * manualScaleFactor * currentScale;
         const lineWidth = 5 * manualScaleFactor * currentScale;
-
+        
+        console.log("Num", num)
         const angle = Math.atan2(y2 - y1, x2 - x1);
 
         const arrowX1 = x2 - arrowLength * Math.cos(angle - Math.PI / 9);
@@ -58,15 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         svg.appendChild(line);
         svg.appendChild(arrowHead);
-
-        // Save the line start and end points
+        console.log("here: ", pathDetails.path)
         arrows.push({
-            x1, // Start X-coordinate
-            y1, // Start Y-coordinate
-            x2, // End X-coordinate
-            y2, // End Y-coordinate
-            radius: 5, // Adjust radius as needed
-            name: pathDetails.path[isStart ? 0 : pathDetails.path.length - 1].name,
+            x1, 
+            y1, 
+            x2, 
+            y2, 
+            radius: 14, 
+            name: pathDetails.path[isStart ? 0 : num].name,
             color,
             pathDetails,
             type: isStart ? 'start' : isEnd ? 'end' : 'mid',
@@ -100,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function isMouseOverArrow(mouseX, mouseY, arrow) {
         const distance = pointToLineDistance(mouseX, mouseY, arrow.x1, arrow.y1, arrow.x2, arrow.y2);
-        return distance <= arrow.radius + 5; // Adjust tolerance as needed
+        return distance <= arrow.radius + 5;  
     }
 
     function pointToLineDistance(px, py, x1, y1, x2, y2) {
@@ -144,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         arrows.forEach(arrow => {
             if (isMouseOverArrow(mouseX, mouseY, arrow)) {
+                console.log(arrow.name);
                 tooltip.style.display = 'block';
                 tooltip.style.left = `${e.clientX + window.scrollX + 5}px`;
                 tooltip.style.top = `${e.clientY + window.scrollY + 5}px`;
@@ -227,17 +229,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         const startY = path[i - 1]["y"] * manualScaleFactor * currentScale + curnum * yShift;
                         const endX = path[i]["x"] * manualScaleFactor * currentScale + curnum * xShift;
                         const endY = path[i]["y"] * manualScaleFactor * currentScale + curnum * yShift;
-
-                        drawArrow(startX, startY, endX, endY, colorMap[curnum], pathDetails, i === 1, i === path.length - 1);
+                        console.log("test val");
+                        console.log("passing i ", i)
+                        drawArrow(i, startX, startY, endX, endY, colorMap[curnum], pathDetails, i === 1, i === path.length - 1);
                     }
                 });
 
                 adjustSvgSize();
                 document.getElementById('error_message').innerHTML = "";
             })
-            .catch((err) => {
-                console.log("Fetch error:", err);
-            });
+            
     });
 
     const arrows = [];

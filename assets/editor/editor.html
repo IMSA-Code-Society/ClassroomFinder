@@ -108,10 +108,8 @@
         .then(response => response.json())
         .then(data => {
 
-          // Clear the canvas before drawing
           context.clearRect(0, 0, canvas.width, canvas.height);
 
-          // Draw all nodes
           data.forEach(node => {
             context.beginPath();
             context.arc(node.x, node.y, 6, 0, 2 * Math.PI);
@@ -119,7 +117,6 @@
             context.fillStyle = "green";
             context.fill();
 
-            // Draw the text near the node
             context.font = "12px Arial";
             context.fillStyle = "green";
             context.fillText(node.name, node.x + 10, node.y + 5);
@@ -127,7 +124,6 @@
             context.stroke();
           });
 
-          // Draw connections
           data.forEach(node => {
             node.neighbor_nodes.forEach(neighbor => {
               const neighborNode = data.find(n => n.id === neighbor[0]);
@@ -149,7 +145,6 @@
       const id1 = parseInt(document.getElementById("node1").value);
       const id2 = parseInt(document.getElementById("node2").value);
 
-      // Fetch the nodes from the JSON file
       fetch("/assets/nodes.json")
         .then(response => response.json())
         .then(data => {
