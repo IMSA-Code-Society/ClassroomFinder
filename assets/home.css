@@ -139,7 +139,7 @@ input:focus {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background-color: rgb(107, 130, 172);;
+  background-color: #1E201E;
   color: white;
   border: none;
   font-size: 20px;
@@ -151,5 +151,13 @@ input:focus {
 }
 
 #zoomIn:hover, #zoomOut:hover {
-  background-color: #0056b3;
+  background-color: #3C3D37;
 }
+a {
+  color: #697565;
+}
+
+a:visited {
+  color: #ECDFCC;
+}
+
