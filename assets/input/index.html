@@ -31,63 +31,69 @@
         <svg id="mySvg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></svg>
     </div>
 
-    <p style="color: white">The order of classes is by color. IE, red is 1st, orange 2nd...</p>
+    <p style="color: white ">The order of classes is by color. IE, red is 1st, orange 2nd...</p>
     <textarea id="scheduleInput" placeholder="Enter schedule... " rows="10%" cols="150%"
         style="background-color:#3C3D37; border-width: 0; color: white"></textarea>
-    <div style=" text-align: center;">
+
+    <div>
         <form id="scheduleForm">
 
-            <p></p>
+            <br>
             <div
-                style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 10px; color: white">
+                style="display: flex; background-color: #3C3D37; align-items: center; gap: 20px; color: white; float: left;">
                 <label for="daySelector">Choose what to render:</label>
-                <select id="daySelector" style="background-color: #3C3D37; border-width: 0; color: white">
+                <select id="daySelector" style="background-color: #697565; border-width: 0; color: white">
                     <option value="aday">A Day</option>
                     <option value="bday">B Day</option>
                     <option value="cday">C Day</option>
                     <option value="dday">D Day</option>
                     <option value="iday">I Day</option>
                 </select>
-                <select id="semSelector" style="background-color: #3C3D37; ;  border-width: 0; color: white">
+                <select id="semSelector" style="background-color: #697565; ;  border-width: 0; color: white">
                     <option value="Semester 1">Semester One</option>
                     <option value="Semester 2">Semester Two</option>
                 </select>
                 <p>Midday @ Lexington?</p><input type="checkbox" id="midday" value="lexington">
                 <p>Enter:</p><select id="enterSelector"
-                    style="background-color: #3C3D37;  border-width: 0; color: white">
+                    style="background-color: #697565;  border-width: 0; color: white">
                     <option value="east">East Main</option>
                     <option value="west">West Main</option>
 
                     <option value="d13">Door 13</option>
                     <option value="d6">Door 6</option>
                 </select>
-                <p>Exit:</p><select id="exitSelector"
-                    style="background-color: #3C3D37;  border-width: 0; color: white">
+                <p>Exit:</p><select id="exitSelector" style="background-color: #697565;  border-width: 0; color: white">
                     <option value="east">East Main</option>
                     <option value="west">West Main</option>
 
                     <option value="d13">Door 13</option>
                     <option value="d6">Door 6</option>
                 </select>
-                <button type="submit"
-                    style="background-color: #3C3D37; border-width: 0; color: white ">Submit</button>
-                <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                    <p><a href="/">Schedule Finder</a>
-                        <a href="/about">About Page</a>
-                        <a href="/path">Direct Path</a>
-                    </p>
-                    <style>
-                      
-                    </style>
+            </div>
+            <button type="submit"
+                style="margin-left: 55px; background-color: #3C3D37; border-width: 0; color: white; width: 120px; height: 54px; font-size: 24px;">Submit</button>
 
-                </div>
-                <div style="background-color:red">
-                    <p id="error_message" style="color: black; background: darkorange;" ;></p>
-                </div>
+            <br>
+            <br>
+            <br>
+
+            <div>
+                <p><a href="/">Schedule Finder</a>
+                    <a href="/about">About Page</a>
+                    <a href="/path">Direct Path</a>
+                </p>
+                <style>
+
+                </style>
 
             </div>
-        </form>
+            <div style="background-color:red">
+                <p id="error_message" style="color: black; background: darkorange;" ;></p>
+            </div>
+
     </div>
+    </form>
+
 
     <div id="tooltip" class="tooltip"></div>
 </body>

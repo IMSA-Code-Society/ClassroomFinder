@@ -181,23 +181,43 @@ fn sort_by_day(schedule_info: &ScheduleInfo) -> Result<Vec<Class>, String> {
         .iter()
         .enumerate()
         .map(|(item, mods_days)| {
-            let (mod_str, day_str) = mods_days.split_once('(').unwrap();
-            let days = parse_day(day_str.trim_end_matches(')'))?;
-            let mods = parse_mods(mod_str)?;
+            let curreg = Regex::new(r"^[\w-]+\([^()]*\)( [\w-]+\([^()]*\))*$").unwrap();
+
+            let parsed_mods_days = if curreg.is_match(mods_days) {
+                let re = Regex::new(r"\d+-?\d*\([^)]+\)|\d+\([^)]+\)").unwrap();
+                let vals: Vec<&str> = re.find_iter(mods_days).map(|mat| mat.as_str()).collect();
+                vals.iter()
+                    .map(|mods_day_val| {
+                        let (mod_str, day_str) = mods_day_val.split_once('(').unwrap();
+                        let days: Vec<Day> = parse_day(day_str.trim_end_matches(')'))?;
+                        let mods: Vec<u8> = parse_mods(mod_str)?;
+                        Ok((days, mods))
+                    })
+                    .collect::<Result<Vec<(Vec<Day>, Vec<u8>)>, String>>()?
+            } else {
+                let (mod_str, day_str) = mods_days.split_once('(').unwrap();
+                let days: Vec<Day> = parse_day(day_str.trim_end_matches(')'))?;
+                let mods: Vec<u8> = parse_mods(mod_str)?;
+                vec![(days, mods)]
+            };
+
+            // Flatten all the parsed days and mods into one structure
+            let (all_days, all_mods): (Vec<_>, Vec<_>) = parsed_mods_days
+                .into_iter()
+                .fold((vec![], vec![]), |(mut days, mut mods), (d, m)| {
+                    days.extend(d);
+                    mods.extend(m);
+                    (days, mods)
+                });
 
             Ok(Class {
-                days,
-                mods,
+                days: all_days,
+                mods: all_mods,
                 semester: match schedule_info.semester[item].as_str() {
                     "S1" => Semester::S1,
                     "S2" => Semester::S2,
                     "Y24-25" => Semester::Year,
-                    _ => {
-                        return Err(format!(
-                            "Unknown semester '{}'",
-                            schedule_info.semester[item]
-                        ))
-                    }
+                    _ => return Err(format!("Unknown semester '{}'", schedule_info.semester[item])),
                 },
                 short_name: schedule_info.short_name[item].clone(),
                 long_name: schedule_info.long_name[item].clone(),
@@ -209,6 +229,7 @@ fn sort_by_day(schedule_info: &ScheduleInfo) -> Result<Vec<Class>, String> {
         })
         .collect()
 }
+
 
 pub fn path(weekly_schedule: &Vec<Class>) -> Result<[[String; 8]; 5], String> {
     let mut weekly_path: [[String; 8]; 5] = [
@@ -252,7 +273,7 @@ pub fn path(weekly_schedule: &Vec<Class>) -> Result<[[String; 8]; 5], String> {
             }
         }
     }
-    
+
     Ok(weekly_path)
 }
 struct ScheduleInfo {
