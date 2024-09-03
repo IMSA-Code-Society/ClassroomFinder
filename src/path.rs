@@ -9,7 +9,7 @@ Exp    Trm    Crs-Sec    Course Name    Teacher    Room    Enroll    Leave
 7(A-D)    S1    MAT473-2    Linear Algebra    Brummet, Evan    A135    08/19/2024    01/19/2025
 8(A-D)    S1    MAT474-1    Abstract Algebra    Fogel, Micah    A155    08/19/2024    01/19/2025
 */
-
+use lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::{name_to_id, pathfinding, Node};
@@ -24,14 +24,14 @@ struct ScheduleInfo {
     end: Vec<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, serde::Serialize)]
 enum Semester {
     S1,
     S2,
     Year,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone, serde::Serialize)]
 enum Day {
     A,
     B,
@@ -39,8 +39,9 @@ enum Day {
     D,
     I,
 }
+pub type FullClass = (Vec<usize>, (Option<Class>, Option<Class>));
 
-#[derive(Debug)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct Class {
     days: Vec<Day>,
     mods: Vec<u8>,
@@ -53,13 +54,13 @@ pub struct Class {
     end: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
 pub struct DailyNode {
-    pub anode: Option<Vec<Vec<usize>>>,
-    pub bnode: Option<Vec<Vec<usize>>>,
-    pub inode: Option<Vec<Vec<usize>>>,
-    pub cnode: Option<Vec<Vec<usize>>>,
-    pub dnode: Option<Vec<Vec<usize>>>,
+    pub anode: Option<Vec<FullClass>>,
+    pub bnode: Option<Vec<FullClass>>,
+    pub inode: Option<Vec<FullClass>>,
+    pub cnode: Option<Vec<FullClass>>,
+    pub dnode: Option<Vec<FullClass>>,
 }
 
 pub enum EnterExit {
@@ -125,14 +126,14 @@ fn resolve_semester(input: &str) -> Result<Vec<Class>, String> {
         listvec = listvec[1..].to_vec();
     }
 
-    let mut mods = Vec::new();
-    let mut semester = Vec::new();
-    let mut short_name = Vec::new();
-    let mut long_name = Vec::new();
+    let mut mods: Vec<String> = Vec::new();
+    let mut semester: Vec<String> = Vec::new();
+    let mut short_name: Vec<String> = Vec::new();
+    let mut long_name: Vec<String> = Vec::new();
     let mut teacher = Vec::new();
-    let mut room = Vec::new();
-    let mut start = Vec::new();
-    let mut end = Vec::new();
+    let mut room: Vec<String> = Vec::new();
+    let mut start: Vec<String> = Vec::new();
+    let mut end: Vec<String> = Vec::new();
 
     for (num, line) in listvec.into_iter().enumerate() {
         let line = line.replace("    ", "\t");
@@ -166,11 +167,15 @@ fn resolve_semester(input: &str) -> Result<Vec<Class>, String> {
         end,
     })
 }
-
+lazy_static! {
+    static ref DAY_REGEX: Regex = Regex::new(r"^[ ABCDI,-]*$").unwrap();
+    static ref MODS_REGEX: Regex = Regex::new(r"^[a-zA-Z0-9-]*$").unwrap();
+    static ref CURREG_REGEX: Regex = Regex::new(r"^[\w-]+\([^()]*\)( [\w-]+\([^()]*\))*$").unwrap();
+    static ref MODS_DAY_REGEX: Regex = Regex::new(r"\d+-?\d*\([^)]+\)|\d+\([^)]+\)").unwrap();
+}
 fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
-    let re = Regex::new(r"^[ ABCDI,-]*$").unwrap();
-    if !re.is_match(day_str) {
-        return Err(format!("This day value is invalid: {day_str}"));
+    if !DAY_REGEX.is_match(day_str) {
+        return Err(format!("Invalid day value: {day_str}"));
     }
 
     let mut days = vec![];
@@ -181,38 +186,33 @@ fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
             "C" => days.push(Day::C),
             "D" => days.push(Day::D),
             "I" => days.push(Day::I),
-            _ => {
-                if let Some((start_char, rest)) = day.split_once('-') {
-                    let start = start_char.chars().next().unwrap();
-                    let end = rest.chars().next().unwrap_or(start);
-                    for d in start..=end {
-                        if let Some(result) = match d {
-                            'A' => Some(Day::A),
-                            'B' => Some(Day::B),
-                            'C' => Some(Day::C),
-                            'D' => Some(Day::D),
-                            'I' => Some(Day::I),
-                            _ => None,
-                        } {
-                            days.push(result);
-                        } else {
-                            return Err(format!("Unknown day pattern: {day}"));
-                        }
-                    }
-                } else {
-                    return Err(format!("Unknown day pattern: {day}"));
-                }
+            _ if day.contains('-') => {
+                let (start, end) = day
+                    .split_once('-')
+                    .ok_or_else(|| format!("Invalid range: {day}"))?;
+                let start = start
+                    .chars()
+                    .next()
+                    .ok_or_else(|| format!("Invalid start day: {day}"))?;
+                let end = end.chars().next().unwrap_or(start);
+                days.extend((start..=end).filter_map(|d| match d {
+                    'A' => Some(Day::A),
+                    'B' => Some(Day::B),
+                    'C' => Some(Day::C),
+                    'D' => Some(Day::D),
+                    'I' => Some(Day::I),
+                    _ => None,
+                }));
             }
+            _ => return Err(format!("Unknown day pattern: {day}")),
         }
     }
     Ok(days)
 }
 
 fn parse_mods(mod_str: &str) -> Result<Vec<u8>, String> {
-    let re = Regex::new(r"^[a-zA-Z0-9-]*$").unwrap();
-
-    if !re.is_match(mod_str) {
-        return Err(format!("This mod value is invalid: {mod_str}"));
+    if !MODS_REGEX.is_match(mod_str) {
+        return Err(format!("Invalid mod value: {mod_str}"));
     }
     let mut mods = vec![];
     for part in mod_str.split('-') {
@@ -220,7 +220,10 @@ fn parse_mods(mod_str: &str) -> Result<Vec<u8>, String> {
             if let Some(end_char) = part.chars().last() {
                 if let (Some(start), Some(end)) = (start_char.to_digit(10), end_char.to_digit(10)) {
                     for m in start..=end {
-                        mods.push(u8::try_from(m).unwrap());
+                        match u8::try_from(m) {
+                            Ok(var) => mods.push(var),
+                            Err(err) => return Err(err.to_string()),
+                        }
                     }
                 }
             }
@@ -249,13 +252,15 @@ fn sort_by_day(schedule_info: &ScheduleInfo) -> Result<Vec<Class>, String> {
                     })
                     .collect::<Result<Vec<(Vec<Day>, Vec<u8>)>, String>>()?
             } else {
-                let (mod_str, day_str) = mods_days.split_once('(').unwrap();
+                let Some((mod_str, day_str)) = mods_days.split_once('(') else {
+                    return Err(format!(
+                        "There was no \"(\" token in line {item}. The problematic input was {mods_days}"
+                    ));
+                };
                 let days: Vec<Day> = parse_day(day_str.trim_end_matches(')'))?;
                 let mods: Vec<u8> = parse_mods(mod_str)?;
                 vec![(days, mods)]
             };
-
-            // Flatten all the parsed days and mods into one structure
             let (all_days, all_mods): (Vec<_>, Vec<_>) = parsed_mods_days.into_iter().fold(
                 (vec![], vec![]),
                 |(mut days, mut mods), (d, m)| {
@@ -289,17 +294,22 @@ fn sort_by_day(schedule_info: &ScheduleInfo) -> Result<Vec<Class>, String> {
         })
         .collect()
 }
+pub fn path(weekly_schedule: &Vec<Class>) -> Result<[[&Class; 8]; 5], String> {
+    static DEFAULT_CLASS: Class = Class {
+        days: Vec::new(),
+        mods: Vec::new(),
+        semester: Semester::Year,
+        short_name: String::new(),
+        long_name: String::new(),
+        teacher: String::new(),
+        room: String::new(),
+        start: String::new(),
+        end: String::new(),
+    };
 
-pub fn path(weekly_schedule: &Vec<Class>) -> Result<[[String; 8]; 5], String> {
-    let mut weekly_path: [[String; 8]; 5] = [
-        Default::default(),
-        Default::default(),
-        Default::default(),
-        Default::default(),
-        Default::default(),
-    ];
+    let mut weekly_path: [[&Class; 8]; 5] = [[&DEFAULT_CLASS; 8]; 5];
 
-    for day in 0..5 {
+    for (day, _item) in weekly_path.clone().iter_mut().enumerate() {
         let letter_day: Day = match day {
             0 => Day::A,
             1 => Day::B,
@@ -309,24 +319,19 @@ pub fn path(weekly_schedule: &Vec<Class>) -> Result<[[String; 8]; 5], String> {
             _ => {
                 return Err(format!(
                     "If you are seeing this, things went really bad. 
-            DEBUG VAL {day}"
+                    DEBUG VAL {day}"
                 ))
             }
         };
 
         for class in weekly_schedule {
             if class.days.contains(&letter_day) {
-                for mods in &class.mods {
-                    match mods {
-                        1 => weekly_path[day][0].clone_from(&class.room),
-                        2 => weekly_path[day][1].clone_from(&class.room),
-                        3 => weekly_path[day][2].clone_from(&class.room),
-                        4 => weekly_path[day][3].clone_from(&class.room),
-                        5 => weekly_path[day][4].clone_from(&class.room),
-                        6 => weekly_path[day][5].clone_from(&class.room),
-                        7 => weekly_path[day][6].clone_from(&class.room),
-                        8 => weekly_path[day][7].clone_from(&class.room),
-                        _ => panic!("Unexpected val --> {mods}"),
+                for &mod_num in &class.mods {
+                    let index = mod_num as usize - 1;
+                    if index < 8 {
+                        weekly_path[day][index] = class;
+                    } else {
+                        return Err(format!("Unexpected mod value --> {mod_num}"));
                     }
                 }
             }
@@ -338,38 +343,43 @@ pub fn path(weekly_schedule: &Vec<Class>) -> Result<[[String; 8]; 5], String> {
 
 #[allow(clippy::too_many_lines)]
 pub fn node_find_func(
-    schedule: &[[String; 8]; 5],
+    schedule: &[[&Class; 8]; 5],
     mut nodes: Vec<Node>,
     entrance: &EnterExit,
     exit: &EnterExit,
     checked: bool,
 ) -> Result<(DailyNode, Vec<Node>), String> {
-    let mut master_vec: Vec<Vec<Option<[usize; 2]>>> = Vec::new();
+    let mut master_vec: Vec<Vec<Option<FullClass>>> = Vec::new();
 
     for day in schedule {
-        let mut vec: Vec<Option<[usize; 2]>> = Vec::new();
+        let mut vec: Vec<Option<FullClass>> = Vec::new();
 
-        for (num, mut class) in day.iter().enumerate() {
+        for (num, class) in day.iter().enumerate() {
+            let mut class_name: &String = &class.room;
             if num == 3 {
                 vec.push(None);
             }
-            let earlyclass = class.to_lowercase();
-            class = &earlyclass;
+            let earlyclass = class_name.to_lowercase();
+            class_name = &earlyclass;
 
-            if class.is_empty() {
+            if class_name.is_empty() {
                 continue;
             }
 
-            let start_room = name_to_id(class, &nodes)
-                .ok_or(format!("The room '{class}' was not recognized"))?;
+            let start_room = name_to_id(class_name, &nodes)
+                .ok_or(format!("The room '{class_name}' was not recognized"))?;
 
             for offset in 1..8 - num {
                 if let Some(next_class) = day.get(num + offset) {
-                    if !next_class.is_empty() {
-                        let next_room = name_to_id(&next_class.to_lowercase(), &nodes)
-                            .ok_or(format!("The room '{next_class}' was not recognized"))?;
+                    let next_class_name = &next_class.room;
+                    if !next_class_name.is_empty() {
+                        let next_room: usize = name_to_id(&next_class_name.to_lowercase(), &nodes)
+                            .ok_or(format!("The room '{next_class_name}' was not recognized"))?;
                         if start_room != next_room {
-                            vec.push(Some([start_room, next_room]));
+                            vec.push(Some((
+                                [start_room, next_room].to_vec(),
+                                (Some((*class).clone()), Some((*next_class).clone())),
+                            )));
                         }
                         break;
                     }
@@ -386,9 +396,17 @@ pub fn node_find_func(
         cnode: None,
         dnode: None,
     };
+
     for (num, day) in master_vec.into_iter().enumerate() {
-        let mut dayvec: Vec<Vec<usize>> = Vec::new();
+        let mut dayvec: Vec<FullClass> = Vec::new();
         if day.get(num).is_some() {
+            let Some(start) = day.first() else {
+                return Err(format!("Couldn't take a first on day. Day value: {day:?}"));
+            };
+            let end_id = match start {
+                Some(val) => val.0[0],
+                None => 55,
+            };
             let shortest_path_st = pathfinding::time_path(
                 {
                     match entrance {
@@ -398,45 +416,57 @@ pub fn node_find_func(
                         EnterExit::D6 => 147,
                     }
                 },
-                match day.first().unwrap() {
-                    Some(val) => val[0],
-                    None => 55,
-                },
+                end_id,
                 &mut nodes,
             );
-            dayvec.push(shortest_path_st);
+            dayvec.push((
+                shortest_path_st,
+                (None, start.as_ref().map(|val| val.1 .0.clone().unwrap())),
+            ));
         }
 
         for (iter, vecpath) in day.clone().into_iter().enumerate() {
             if vecpath.is_none() {
                 if checked && day[iter.saturating_sub(1)].is_some() {
                     let to_lex: Vec<usize> = pathfinding::time_path(
-                        day[iter.saturating_sub(1)].unwrap()[1],
+                        day[iter.saturating_sub(1)].clone().unwrap().0[1],
                         55,
                         &mut nodes,
                     );
                     let from_lex: Vec<usize> =
-                        pathfinding::time_path(55, day[iter + 1].unwrap()[1], &mut nodes);
-                    dayvec.push(to_lex);
-                    dayvec.push(from_lex);
+                        pathfinding::time_path(55, day[iter + 1].clone().unwrap().0[1], &mut nodes);
+                    dayvec.push((
+                        to_lex,
+                        (day[iter.saturating_sub(1)].clone().unwrap().1 .0, None),
+                    ));
+                    dayvec.push((from_lex, (None, day[iter + 1].clone().unwrap().1 .1)));
                 } else if day[iter.saturating_sub(1)].is_some() {
                     let to_norm: Vec<usize> = pathfinding::time_path(
-                        day[iter.saturating_sub(1)].unwrap()[1],
-                        day[iter + 1].unwrap()[1],
+                        day[iter.saturating_sub(1)].clone().unwrap().0[1],
+                        day[iter + 1].clone().unwrap().0[1],
                         &mut nodes,
                     );
-                    dayvec.push(to_norm);
+                    dayvec.push((
+                        to_norm,
+                        (
+                            day[iter.saturating_sub(1)].clone().unwrap().1 .1,
+                            day[iter + 1].clone().unwrap().1 .1,
+                        ),
+                    ));
                 }
             } else if day[iter.saturating_sub(1)].is_some() {
-                let shortest_path =
-                    pathfinding::time_path(vecpath.unwrap()[0], vecpath.unwrap()[1], &mut nodes);
-                dayvec.push(shortest_path);
+                let shortest_path: Vec<usize> = pathfinding::time_path(
+                    vecpath.clone().unwrap().0[0],
+                    vecpath.clone().unwrap().0[1],
+                    &mut nodes,
+                );
+                dayvec.push((shortest_path, vecpath.clone().unwrap().1));
             }
         }
         if day.get(num).is_some() {
-            let shortest_path_en = pathfinding::time_path(
+            let shortest_path_en: Vec<usize> = pathfinding::time_path(
                 match day.last().unwrap() {
-                    Some(result) => result[1],
+                    Some(result) => result.0[1],
                     None => 55,
                 },
                 {
@@ -449,7 +479,18 @@ pub fn node_find_func(
                 },
                 &mut nodes,
             );
-            dayvec.push(shortest_path_en);
+            dayvec.push((
+                shortest_path_en,
+                (
+                    {
+                        match day.last().unwrap() {
+                            Some(result) => result.1 .1.clone(),
+                            None => None,
+                        }
+                    },
+                    None,
+                ),
+            ));
         }
 
         match num {
@@ -461,5 +502,6 @@ pub fn node_find_func(
             _ => return Err(format!("Unexpected num {num}")),
         }
     }
+
     Ok((dailynode, nodes))
 }

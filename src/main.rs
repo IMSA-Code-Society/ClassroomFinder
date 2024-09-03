@@ -1,4 +1,3 @@
-
 use actix_files::Files;
 use actix_web::web;
 use serde::{Deserialize, Serialize};
@@ -40,15 +39,12 @@ mod pathfinding {
 
     pub fn time_path(start_id: usize, end_id: usize, nodes: &mut [Node]) -> Vec<usize> {
         initialize_nodes(nodes, start_id);
-
         let mut unvisited_nodes: Vec<usize> = (0..nodes.len()).collect();
-
         while let Some(current_index) = unvisited_nodes
             .iter()
             .min_by(|&&a, &&b| nodes[a].dist.partial_cmp(&nodes[b].dist).unwrap())
         {
             let current_index = *current_index;
-
             if nodes[current_index].dist == f64::INFINITY {
                 println!("Node {current_index} is unreachable, stopping.");
                 break;
@@ -115,6 +111,7 @@ fn name_to_id(name: &str, nodes: &[Node]) -> Option<usize> {
 use shuttle_actix_web::ShuttleActixWeb;
 
 #[shuttle_runtime::main]
+#[allow(clippy::unused_async)]
 async fn shuttle_main(
 ) -> ShuttleActixWeb<impl FnOnce(&mut web::ServiceConfig) + Clone + Send + 'static> {
     let factory = move |cfg: &mut web::ServiceConfig| {

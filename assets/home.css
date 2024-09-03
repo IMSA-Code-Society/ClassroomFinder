@@ -7,14 +7,10 @@ canvas {
   position: absolute;
   width: 200%;
 }
-.tooltip {
-  position: absolute;
-  display: none;
-  padding: 5px;
-  z-index: 1000;
-  /* Ensure the tooltip is above other content */
-}
+
+
 body {
+  background-color: #1E201E;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -53,18 +49,6 @@ body {
 
 }
 
-/*
-.input_response{
-  background-color: rgba(0, 139, 173, 0.995);
-  width: 100%;
-  height: 25%;
-  font-family: Arial;
-  display: flex;
-  grid-template-columns: 125px; 
-  align-items: center;
-  justify-content: center;
-}
-*/
 .input_response_contents {
   display: flex;
   justify-content: center;
@@ -135,7 +119,8 @@ input:focus {
 }
 
 
-#zoomIn, #zoomOut {
+#zoomIn,
+#zoomOut {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -150,9 +135,11 @@ input:focus {
   transition: background-color 0.3s;
 }
 
-#zoomIn:hover, #zoomOut:hover {
+#zoomIn:hover,
+#zoomOut:hover {
   background-color: #3C3D37;
 }
+
 a {
   color: #697565;
 }
@@ -161,3 +148,54 @@ a:visited {
   color: #ECDFCC;
 }
 
+.tooltip {
+  position: absolute;
+  color: #fff;
+  padding: 8px;
+  border-radius: 4px;
+  max-width: 200px;
+  word-wrap: break-word;
+  display: none;
+  z-index: 1001;
+  font-size: 14px;
+}
+
+button:active {
+  transform: translateY(2px);
+}
+
+#mySvg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#hallwayImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+#scheduleInput {
+  background-color: #3C3D37;
+  border-width: 0;
+  color: white
+}
+
+select {
+  background-color: #697565;
+  border-width: 0;
+  color: white
+}
+
+#submit {
+  margin-left: 55px;
+  background-color: #3C3D37;
+  border-width: 0;
+  color: white;
+  width: 120px;
+  height: 54px;
+  font-size: 24px;
+}
