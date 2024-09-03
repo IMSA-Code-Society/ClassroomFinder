@@ -693,6 +693,7 @@ dependencies = [
  "axum 0.7.5",
  "futures",
  "image",
+ "lazy_static",
  "log",
  "regex",
  "serde",
