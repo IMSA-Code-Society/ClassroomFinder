@@ -437,7 +437,7 @@ pub fn node_find_func(
                         pathfinding::time_path(55, day[iter + 1].clone().unwrap().0[1], &mut nodes);
                     dayvec.push((
                         to_lex,
-                        (day[iter.saturating_sub(1)].clone().unwrap().1 .0, None),
+                        (day[iter.saturating_sub(1)].clone().unwrap().1 .1, None),
                     ));
                     dayvec.push((from_lex, (None, day[iter + 1].clone().unwrap().1 .1)));
                 } else if day[iter.saturating_sub(1)].is_some() {

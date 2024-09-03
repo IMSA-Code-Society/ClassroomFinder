@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             y1,
             x2,
             y2,
-            radius: 14,
+            radius: 8,
             name: pathDetails.path[isStart ? 0 : num].name,
             color,
             pathDetails,
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function isMouseOverArrow(mouseX, mouseY, arrow) {
         const distance = pointToLineDistance(mouseX, mouseY, arrow.x1, arrow.y1, arrow.x2, arrow.y2);
-        return distance <= arrow.radius + 5;
+        return distance <= arrow.radius + 6;
     }
 
     function pointToLineDistance(px, py, x1, y1, x2, y2) {
