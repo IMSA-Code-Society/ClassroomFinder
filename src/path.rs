@@ -366,7 +366,15 @@ pub fn node_find_func(
         let mut day_vec = Vec::new();
 
         if let Some(first_class) = day.first().and_then(|fc| fc.as_ref()) {
-            let start_path = path_from_entrance(entrance, first_class, &mut nodes);
+            let start_path = {
+                let start_room_id = match entrance {
+                    EnterExit::WestMain => 146,
+                    EnterExit::EastMain => 0,
+                    EnterExit::D13 => 145,
+                    EnterExit::D6 => 147,
+                };
+                pathfinding::time_path(start_room_id, first_class.0[0], &mut nodes)
+            };
             day_vec.push((start_path, (None, first_class.1 .0.clone())));
         }
 
@@ -374,7 +382,10 @@ pub fn node_find_func(
             if vecpath.is_none() && checked {
                 if let Some(prev_class) = day.get(iter.wrapping_sub(1)).and_then(|p| p.as_ref()) {
                     if let Some(next_class) = day.get(iter + 1).and_then(|n| n.as_ref()) {
-                        add_lexington_path(prev_class, next_class, &mut day_vec, &mut nodes);
+                        let to_lex = pathfinding::time_path(prev_class.0[1], 55, &mut nodes);
+                        let from_lex = pathfinding::time_path(55, next_class.0[1], &mut nodes);
+                        day_vec.push((to_lex, (prev_class.1 .1.clone(), None)));
+                        day_vec.push((from_lex, (None, next_class.1 .1.clone())));
                     }
                 }
             } else if let Some(ref full_class) = vecpath {
@@ -385,7 +396,15 @@ pub fn node_find_func(
         }
 
         if let Some(last_class) = day.last().and_then(|lc| lc.as_ref()) {
-            let end_path = path_to_exit(last_class, exit, &mut nodes);
+            let end_path = {
+                let end_room_id = match exit {
+                    EnterExit::WestMain => 146,
+                    EnterExit::EastMain => 0,
+                    EnterExit::D13 => 145,
+                    EnterExit::D6 => 147,
+                };
+                pathfinding::time_path(last_class.0[1], end_room_id, &mut nodes)
+            };
             day_vec.push((end_path, (last_class.1 .1.clone(), None)));
         }
 
@@ -411,40 +430,4 @@ fn find_next_class<'a>(day: &'a [&'a Class; 8], start_index: usize) -> Option<&'
         }
     }
     None
-}
-
-fn path_from_entrance(
-    entrance: &EnterExit,
-    first_class: &FullClass,
-    nodes: &mut [Node],
-) -> Vec<usize> {
-    let start_room_id = match entrance {
-        EnterExit::WestMain => 146,
-        EnterExit::EastMain => 0,
-        EnterExit::D13 => 145,
-        EnterExit::D6 => 147,
-    };
-    pathfinding::time_path(start_room_id, first_class.0[0], nodes)
-}
-
-fn path_to_exit(last_class: &FullClass, exit: &EnterExit, nodes: &mut [Node]) -> Vec<usize> {
-    let end_room_id = match exit {
-        EnterExit::WestMain => 146,
-        EnterExit::EastMain => 0,
-        EnterExit::D13 => 145,
-        EnterExit::D6 => 147,
-    };
-    pathfinding::time_path(last_class.0[1], end_room_id, nodes)
-}
-
-fn add_lexington_path(
-    prev_class: &FullClass,
-    next_class: &FullClass,
-    day_vec: &mut Vec<FullClass>,
-    nodes: &mut [Node],
-) {
-    let to_lex = pathfinding::time_path(prev_class.0[1], 55, nodes);
-    let from_lex = pathfinding::time_path(55, next_class.0[1], nodes);
-    day_vec.push((to_lex, (prev_class.1 .1.clone(), None)));
-    day_vec.push((from_lex, (None, next_class.1 .1.clone())));
 }
