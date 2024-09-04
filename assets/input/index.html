@@ -19,16 +19,10 @@
         <button id="zoomIn">+</button>
         <button id="zoomOut">-</button>
     </div>
-    <style>
-        button:active {
-            transform: translateY(2px);
-        }
-    </style>
-
     <div class="map" style="position: relative; display: inline-block;">
         <img id="hallwayImage" class="hallway" src="/image" alt="Hallway Image"
             style="display: block; width: 100%; height: auto;">
-        <svg id="mySvg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></svg>
+        <svg id="mySvg"></svg>
     </div>
 
     <p style="color: white ">The order of classes is by color. IE, red is 1st, orange 2nd...</p>
@@ -42,27 +36,26 @@
             <div
                 style="display: flex; background-color: #3C3D37; align-items: center; gap: 20px; color: white; float: left;">
                 <label for="daySelector">Choose what to render:</label>
-                <select id="daySelector" style="background-color: #697565; border-width: 0; color: white">
+                <select id="daySelector">
                     <option value="aday">A Day</option>
                     <option value="bday">B Day</option>
                     <option value="cday">C Day</option>
                     <option value="dday">D Day</option>
                     <option value="iday">I Day</option>
                 </select>
-                <select id="semSelector" style="background-color: #697565; ;  border-width: 0; color: white">
+                <select id="semSelector">
                     <option value="Semester 1">Semester One</option>
                     <option value="Semester 2">Semester Two</option>
                 </select>
                 <p>Midday @ Lexington?</p><input type="checkbox" id="midday" value="lexington">
-                <p>Enter:</p><select id="enterSelector"
-                    style="background-color: #697565;  border-width: 0; color: white">
+                <p>Enter:</p><select id="enterSelector">
                     <option value="east">East Main</option>
                     <option value="west">West Main</option>
 
                     <option value="d13">Door 13</option>
                     <option value="d6">Door 6</option>
                 </select>
-                <p>Exit:</p><select id="exitSelector" style="background-color: #697565;  border-width: 0; color: white">
+                <p>Exit:</p><select id="exitSelector">
                     <option value="east">East Main</option>
                     <option value="west">West Main</option>
 
@@ -88,7 +81,7 @@
 
             </div>
             <div style="background-color:red">
-                <p id="error_message" style="color: black; background: darkorange;" ;></p>
+                <p id="error_message" ;></p>
             </div>
 
     </div>

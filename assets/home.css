@@ -199,3 +199,26 @@ select {
   height: 54px;
   font-size: 24px;
 }
+
+button:active {
+  transform: translateY(2px);
+}
+
+select {
+  background-color: #697565;
+  border-width: 0;
+  color: white
+}
+
+svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#error_message {
+  color: black;
+  background: darkorange;
+}
