@@ -29,62 +29,60 @@
     <textarea id="scheduleInput" placeholder="Enter schedule... " rows="10%" cols="150%"
         style="background-color:#3C3D37; border-width: 0; color: white"></textarea>
 
-    <div>
-        <form id="scheduleForm">
 
-            <br>
-            <div
-                style="display: flex; background-color: #3C3D37; align-items: center; gap: 20px; color: white; float: left;">
-                <label for="daySelector">Choose what to render:</label>
-                <select id="daySelector">
-                    <option value="aday">A Day</option>
-                    <option value="bday">B Day</option>
-                    <option value="cday">C Day</option>
-                    <option value="dday">D Day</option>
-                    <option value="iday">I Day</option>
-                </select>
-                <select id="semSelector">
-                    <option value="Semester 1">Semester One</option>
-                    <option value="Semester 2">Semester Two</option>
-                </select>
-                <p>Midday @ Lexington?</p><input type="checkbox" id="midday" value="lexington">
-                <p>Enter:</p><select id="enterSelector">
-                    <option value="east">East Main</option>
-                    <option value="west">West Main</option>
+    <form id="scheduleForm">
 
-                    <option value="d13">Door 13</option>
-                    <option value="d6">Door 6</option>
-                </select>
-                <p>Exit:</p><select id="exitSelector">
-                    <option value="east">East Main</option>
-                    <option value="west">West Main</option>
+        <br>
+        <div
+            style="display: flex; background-color: #3C3D37; align-items: center; gap: 20px; color: white; float: left;">
+            <label for="daySelector">Choose what to render:</label>
+            <select id="daySelector">
+                <option value="aday">A Day</option>
+                <option value="bday">B Day</option>
+                <option value="cday">C Day</option>
+                <option value="dday">D Day</option>
+                <option value="iday">I Day</option>
+            </select>
+            <select id="semSelector">
+                <option value="Semester 1">Semester One</option>
+                <option value="Semester 2">Semester Two</option>
+            </select>
+            <p>Midday @ Lexington?</p><input type="checkbox" id="midday" value="lexington">
+            <p>Enter:</p><select id="enterSelector">
+                <option value="east">East Main</option>
+                <option value="west">West Main</option>
 
-                    <option value="d13">Door 13</option>
-                    <option value="d6">Door 6</option>
-                </select>
-            </div>
-            <button type="submit"
-                style="margin-left: 55px; background-color: #3C3D37; border-width: 0; color: white; width: 120px; height: 54px; font-size: 24px;">Submit</button>
+                <option value="d13">Door 13</option>
+                <option value="d6">Door 6</option>
+            </select>
+            <p>Exit:</p><select id="exitSelector">
+                <option value="east">East Main</option>
+                <option value="west">West Main</option>
 
-            <br>
-            <br>
-            <br>
+                <option value="d13">Door 13</option>
+                <option value="d6">Door 6</option>
+            </select>
+        </div>
+        <button type="submit"
+            style="margin-left: 55px; background-color: #3C3D37; border-width: 0; color: white; width: 120px; height: 54px; font-size: 24px;">Submit</button>
 
-            <div>
-                <p><a href="/">Schedule Finder</a>
-                    <a href="/about">About Page</a>
-                    <a href="/path">Direct Path</a>
-                </p>
-                <style>
+        <br>
 
-                </style>
+        <div>
+            <p><a href="/">Schedule Finder</a>
+                <a href="/about">About Page</a>
+                <a href="/path">Direct Path</a>
+            </p>
+            <style>
 
-            </div>
-            <div style="background-color:red">
-                <p id="error_message" ;></p>
-            </div>
+            </style>
 
-    </div>
+        </div>
+        <div style="background-color:red">
+            <p id="error_message" ;></p>
+        </div>
+
+
     </form>
 
 

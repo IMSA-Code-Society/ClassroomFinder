@@ -121,14 +121,25 @@ fn resolve_semester(input: &str) -> Result<Vec<Class>, String> {
         !line.trim().is_empty() && !line.starts_with("RC") && !line.starts_with("CC")
     });
 
-    let mut mods: Vec<String> = Vec::new();
-    let mut semester: Vec<String> = Vec::new();
-    let mut short_name: Vec<String> = Vec::new();
-    let mut long_name: Vec<String> = Vec::new();
-    let mut teacher = Vec::new();
-    let mut room: Vec<String> = Vec::new();
-    let mut start: Vec<String> = Vec::new();
-    let mut end: Vec<String> = Vec::new();
+    let (
+        mut mods,
+        mut semester,
+        mut short_name,
+        mut long_name,
+        mut teacher,
+        mut room,
+        mut start,
+        mut end,
+    ) = (
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+        Vec::new(),
+    );
 
     for (num, line) in listvec.into_iter().enumerate() {
         let line = line.replace("    ", "\t");
@@ -329,8 +340,9 @@ pub fn node_find_func(
         let mut day_vec: Vec<Option<FullClass>> = Vec::new();
 
         for (num, class) in day.iter().enumerate() {
+            //(for midday)
             if num == 3 {
-                day_vec.push(None); // Insert a break after the 3rd mod
+                day_vec.push(None);
             }
 
             if class.room.trim().is_empty() {
