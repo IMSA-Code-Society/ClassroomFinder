@@ -222,3 +222,33 @@ svg {
   color: black;
   background: darkorange;
 }
+
+textarea {
+  background-color: #3C3D37;
+  border-width: 0;
+  color: white
+}
+
+#maindiv {
+  display: flex;
+  background-color: #3C3D37;
+  align-items: center;
+  gap: 20px;
+  color: white;
+  float: left;
+}
+
+#submit {
+  margin-left: 55px;
+  background-color: #3C3D37;
+  border-width: 0;
+  color: white;
+  width: 120px;
+  height: 54px;
+  font-size: 24px;
+}
+
+#map {
+  position: relative;
+  display: inline-block;
+}
