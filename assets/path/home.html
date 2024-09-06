@@ -7,12 +7,12 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favico/favicon-16x16.png">
   <link rel="manifest" href="/assets/favico/site.webmanifest">
   <title>IMSA Classroom Finder</title>
-  <link rel="stylesheet" href="/home.css">
+  <link rel="stylesheet" href="/assets/home.css">
   <script src="/assets/path/script.js" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 </head>
 
-<body style="background-color: #1E201E;";>
+<body>
   <div class="map">
     <img class="hallway" src="/image">
     <canvas width="1029" height="1182"> </canvas>
@@ -22,99 +22,183 @@
     <div class="input_response_contents">
 
       <div style=" justify-content: center; gap: 20px; margin-top: 10px;">
-        <input id="start" list="rooms" type="text" placeholder="Enter Starting location"
-        style="background-color: #3C3D37;  border-width: 0; color: white">
-        <input id="end" list="rooms" type="text" placeholder="Enter Destination"
-        style="background-color: #3C3D37;  border-width: 0; color: white">
-        <datalist id="rooms">
-          <option value="entrance"></option>
-          <option value="auditorium"></option>
-          <option value="ac pit"></option>
-          <option value="irc"></option>
-          <option value="in2"></option>
-          <option value="makerspace"></option>
-          <option value="gym"></option>
-          <option value="lexington"></option>
-          <option value="old caf"></option>
-          <option value="granger"></option>
-          <option value="tv pit"></option>
-          <option value="lecture hall"></option>
-          <option value="science study area"></option>
-          <option value="math study area"></option>
+        <select id="start" type="text" placeholder="Enter Starting location"
+          style="background-color: #3C3D37;  border-width: 0; color: white">
+          <option value="entrance">Entrance</option>
+          <option value="auditorium">Auditorium</option>
+          <option value="ac pit">AC Pit</option>
+          <option value="irc">IRC</option>
+          <option value="in2">IN2</option>
+          <option value="makerspace">Makerspace</option>
+          <option value="gym">Gym</option>
+          <option value="lexington">Lexington</option>
+          <option value="old caf">Old Cafe</option>
+          <option value="granger">Granger</option>
+          <option value="tv pit">TV Pit</option>
+          <option value="lecture hall">Lecture Hall</option>
+          <option value="science study area">Science Study Area</option>
+          <option value="math study area">Math Study Area</option>
 
-          <option value="a102"></option>
-          <option value="a106"></option>
-          <option value="a107"></option>
-          <option value="a108"></option>
-          <option value="a110"></option>
-          <option value="a112"></option>
-          <option value="a113"></option>
-          <option value="a114"></option>
-          <option value="a115"></option>
-          <option value="a116"></option>
-          <option value="a117"></option>
-          <option value="a119"></option>
-          <option value="a121"></option>
-          <option value="a123"></option>
-          <option value="a125"></option>
-          <option value="a127"></option>
-          <option value="a128"></option>
-          <option value="a129"></option>
-          <option value="a131"></option>
-          <option value="a133"></option>
-          <option value="a134"></option>
-          <option value="a135"></option>
-          <option value="a136"></option>
-          <option value="a145"></option>
-          <option value="a147"></option>
-          <option value="a148"></option>
-          <option value="a149"></option>
-          <option value="a150"></option>
-          <option value="a151"></option>
-          <option value="a152"></option>
-          <option value="a153"></option>
-          <option value="a154"></option>
-          <option value="a155"></option>
-          <option value="a156"></option>
-          <option value="a157"></option>
+          <option value="a102">A102</option>
+          <option value="a106">A106</option>
+          <option value="a107">A107</option>
+          <option value="a108">A108</option>
+          <option value="a110">A110</option>
+          <option value="a112">A112</option>
+          <option value="a113">A113</option>
+          <option value="a114">A114</option>
+          <option value="a115">A115</option>
+          <option value="a116">A116</option>
+          <option value="a117">A117</option>
+          <option value="a119">A119</option>
+          <option value="a121">A121</option>
+          <option value="a123">A123</option>
+          <option value="a125">A125</option>
+          <option value="a127">A127</option>
+          <option value="a128">A128</option>
+          <option value="a129">A129</option>
+          <option value="a131">A131</option>
+          <option value="a133">A133</option>
+          <option value="a134">A134</option>
+          <option value="a135">A135</option>
+          <option value="a136">A136</option>
+          <option value="a145">A145</option>
+          <option value="a147">A147</option>
+          <option value="a148">A148</option>
+          <option value="a149">A149</option>
+          <option value="a150">A150</option>
+          <option value="a151">A151</option>
+          <option value="a152">A152</option>
+          <option value="a153">A153</option>
+          <option value="a154">A154</option>
+          <option value="a155">A155</option>
+          <option value="a156">A156</option>
+          <option value="a157">A157</option>
 
-          <option value="b101"></option>
-          <option value="b104a"></option>
-          <option value="b104b"></option>
-          <option value="b105a"></option>
-          <option value="b105b"></option>
-          <option value="b106"></option>
-          <option value="b107"></option>
-          <option value="b108"></option>
-          <option value="b109"></option>
-          <option value="b110"></option>
-          <option value="b111"></option>
-          <option value="b114"></option>
-          <option value="b115"></option>
-          <option value="b116"></option>
-          <option value="b117"></option>
-          <option value="b125"></option>
-          <option value="b127"></option>
-          <option value="b128"></option>
-          <option value="b133"></option>
-          <option value="b134"></option>
-          <option value="b145"></option>
-          <option value="b156"></option>
+          <option value="b101">B101</option>
+          <option value="b104a">B104a</option>
+          <option value="b104b">B104b</option>
+          <option value="b105a">B105a</option>
+          <option value="b105b">B105b</option>
+          <option value="b106">B106</option>
+          <option value="b107">B107</option>
+          <option value="b108">B108</option>
+          <option value="b109">B109</option>
+          <option value="b110">B110</option>
+          <option value="b111">B111</option>
+          <option value="b114">B114</option>
+          <option value="b115">B115</option>
+          <option value="b116">B116</option>
+          <option value="b117">B117</option>
+          <option value="b125">B125</option>
+          <option value="b127">B127</option>
+          <option value="b128">B128</option>
+          <option value="b133">B133</option>
+          <option value="b134">B134</option>
+          <option value="b145">B145</option>
+          <option value="b156">B156</option>
 
-          <option value="c125"></option>
-          <option value="c136"></option>
-          <option value="c166"></option>
-          <option value="c125"></option>
-          <option value="c125"></option>
+          <option value="c125">C125</option>
+          <option value="c136">C136</option>
+          <option value="c166">C166</option>
+          <option value="c125">C125</option>
 
-          <option value="e117"></option>
-          <option value="e119"></option>
-          <option value="e120"></option>
-          <option value="e121"></option>
-          <option value="e122"></option>
-        </datalist>
+          <option value="e117">E117</option>
+          <option value="e119">E119</option>
+          <option value="e120">E120</option>
+          <option value="e121">E121</option>
+          <option value="e122">E122</option>
+        </select>
+        <select id="end" type="text" placeholder="Enter Destination"
+          style="background-color: #3C3D37;  border-width: 0; color: white">
+          <option value="entrance">Entrance</option>
+          <option value="auditorium">Auditorium</option>
+          <option value="ac pit">AC Pit</option>
+          <option value="irc">IRC</option>
+          <option value="in2">IN2</option>
+          <option value="makerspace">Makerspace</option>
+          <option value="gym">Gym</option>
+          <option value="lexington">Lexington</option>
+          <option value="old caf">Old Cafe</option>
+          <option value="granger">Granger</option>
+          <option value="tv pit">TV Pit</option>
+          <option value="lecture hall">Lecture Hall</option>
+          <option value="science study area">Science Study Area</option>
+          <option value="math study area">Math Study Area</option>
+
+          <option value="a102">A102</option>
+          <option value="a106">A106</option>
+          <option value="a107">A107</option>
+          <option value="a108">A108</option>
+          <option value="a110">A110</option>
+          <option value="a112">A112</option>
+          <option value="a113">A113</option>
+          <option value="a114">A114</option>
+          <option value="a115">A115</option>
+          <option value="a116">A116</option>
+          <option value="a117">A117</option>
+          <option value="a119">A119</option>
+          <option value="a121">A121</option>
+          <option value="a123">A123</option>
+          <option value="a125">A125</option>
+          <option value="a127">A127</option>
+          <option value="a128">A128</option>
+          <option value="a129">A129</option>
+          <option value="a131">A131</option>
+          <option value="a133">A133</option>
+          <option value="a134">A134</option>
+          <option value="a135">A135</option>
+          <option value="a136">A136</option>
+          <option value="a145">A145</option>
+          <option value="a147">A147</option>
+          <option value="a148">A148</option>
+          <option value="a149">A149</option>
+          <option value="a150">A150</option>
+          <option value="a151">A151</option>
+          <option value="a152">A152</option>
+          <option value="a153">A153</option>
+          <option value="a154">A154</option>
+          <option value="a155">A155</option>
+          <option value="a156">A156</option>
+          <option value="a157">A157</option>
+
+          <option value="b101">B101</option>
+          <option value="b104a">B104a</option>
+          <option value="b104b">B104b</option>
+          <option value="b105a">B105a</option>
+          <option value="b105b">B105b</option>
+          <option value="b106">B106</option>
+          <option value="b107">B107</option>
+          <option value="b108">B108</option>
+          <option value="b109">B109</option>
+          <option value="b110">B110</option>
+          <option value="b111">B111</option>
+          <option value="b114">B114</option>
+          <option value="b115">B115</option>
+          <option value="b116">B116</option>
+          <option value="b117">B117</option>
+          <option value="b125">B125</option>
+          <option value="b127">B127</option>
+          <option value="b128">B128</option>
+          <option value="b133">B133</option>
+          <option value="b134">B134</option>
+          <option value="b145">B145</option>
+          <option value="b156">B156</option>
+
+          <option value="c125">C125</option>
+          <option value="c136">C136</option>
+          <option value="c166">C166</option>
+          <option value="c125">C125</option>
+
+          <option value="e117">E117</option>
+          <option value="e119">E119</option>
+          <option value="e120">E120</option>
+          <option value="e121">E121</option>
+          <option value="e122">E122</option>
+        </select>
+
         <button class="path_button" onclick="find_directions()"
-        style="background-color: #3C3D37;  border-width: 0; color: white">
+          style="background-color: #3C3D37;  border-width: 0; color: white">
           Find Shortest Path
         </button>
         <div class="message_box">

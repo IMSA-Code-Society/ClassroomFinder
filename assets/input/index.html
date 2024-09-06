@@ -13,28 +13,23 @@
     <script src="/assets/input/script.js" defer></script>
 </head>
 
-<body style="background-color: #1E201E;">
+<body>
 
     <div class="zoom-buttons">
         <button id="zoomIn">+</button>
         <button id="zoomOut">-</button>
     </div>
-    <div class="map" style="position: relative; display: inline-block;">
-        <img id="hallwayImage" class="hallway" src="/image" alt="Hallway Image"
-            style="display: block; width: 100%; height: auto;">
+    <div class="map" id="map">
+        <img id="hallwayImage" class="hallway" src="/image" alt="Hallway Image">
         <svg id="mySvg"></svg>
     </div>
 
-    <p style="color: white ">The order of classes is by color. IE, red is 1st, orange 2nd...</p>
-    <textarea id="scheduleInput" placeholder="Enter schedule... " rows="10%" cols="150%"
-        style="background-color:#3C3D37; border-width: 0; color: white"></textarea>
-
-
+    <p>The order of classes is by color. IE, red is 1st, orange 2nd...</p>
+    <textarea id="scheduleInput" placeholder="Enter schedule... " rows="10%" cols="150%"></textarea>
     <form id="scheduleForm">
 
         <br>
-        <div
-            style="display: flex; background-color: #3C3D37; align-items: center; gap: 20px; color: white; float: left;">
+        <div id="maindiv">
             <label for="daySelector">Choose what to render:</label>
             <select id="daySelector">
                 <option value="aday">A Day</option>
@@ -63,8 +58,7 @@
                 <option value="d6">Door 6</option>
             </select>
         </div>
-        <button type="submit"
-            style="margin-left: 55px; background-color: #3C3D37; border-width: 0; color: white; width: 120px; height: 54px; font-size: 24px;">Submit</button>
+        <button type="submit" id="submit">Submit</button>
 
         <br>
 
@@ -73,14 +67,12 @@
                 <a href="/about">About Page</a>
                 <a href="/path">Direct Path</a>
             </p>
-            <style>
 
-            </style>
 
         </div>
-        <div style="background-color:red">
-            <p id="error_message" ;></p>
-        </div>
+
+        <p id="error_message" ;></p>
+
 
 
     </form>
