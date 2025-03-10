@@ -1,7 +1,8 @@
 use actix_files::Files;
-use actix_web::web;
+use actix_web::web::{self, ServiceConfig};
 use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
+use shuttle_actix_web::ShuttleActixWeb;
 use std::path::Path;
 mod path;
 mod webpages;
@@ -108,13 +109,10 @@ fn name_to_id(name: &str, nodes: &[Node]) -> Option<usize> {
         .find(|node| node.name == name)
         .map(|node| node.id)
 }
-use shuttle_actix_web::ShuttleActixWeb;
 
 #[shuttle_runtime::main]
-#[allow(clippy::unused_async)]
-async fn shuttle_main(
-) -> ShuttleActixWeb<impl FnOnce(&mut web::ServiceConfig) + Clone + Send + 'static> {
-    let factory = move |cfg: &mut web::ServiceConfig| {
+async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
+    let config = move |cfg: &mut web::ServiceConfig| {
         cfg.service(
             web::scope("")
                 .route("/", web::get().to(input))
@@ -130,5 +128,5 @@ async fn shuttle_main(
         );
     };
 
-    Ok(shuttle_actix_web::ActixWebService(factory))
+    Ok(config.into())
 }
