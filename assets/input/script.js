@@ -1,4 +1,8 @@
+
+
 document.addEventListener('DOMContentLoaded', () => {
+
+    document.getElementById('bottom-part').hidden = false;
     const colorMap = {
         0: "red",
         1: "orange",
@@ -7,14 +11,30 @@ document.addEventListener('DOMContentLoaded', () => {
         4: "blue",
         5: "purple",
         6: "pink",
-        7: "black",
+        7: "grey",
+        8: "brown",
+        9: "black",
     };
 
     const scaleFactor = 1.2;
     let currentScale = 1;
-    const manualScaleFactor = 1.25;
+    const manualScaleFactor = 1;
     const svg = document.getElementById("mySvg");
-    const image = document.getElementById("hallwayImage");
+    let original_image_rect = null;
+
+    const image = document.getElementById('hallwayImage');
+
+    if (image.complete) {
+        original_image_rect = image.getBoundingClientRect();
+        console.log(original_image_rect);
+    } else {
+        image.addEventListener('load', () => {
+            original_image_rect = image.getBoundingClientRect();
+            console.log(original_image_rect);
+        });
+    }
+
+
 
     function adjustSvgSize() {
         const imageRect = image.getBoundingClientRect();
@@ -30,16 +50,27 @@ document.addEventListener('DOMContentLoaded', () => {
         image.style.transform = scaleStr;
     }
 
-    function drawArrow(num, x1, y1, x2, y2, color, pathDetails, isStart, isEnd) {
-        const arrowLength = 12 * manualScaleFactor * currentScale;
-        const arrowWidth = 8 * manualScaleFactor * currentScale;
-        const lineWidth = 5 * manualScaleFactor * currentScale;
+    function toggleMinimize() {
+
+        if (document.getElementById('bottom-part').hidden) {
+            document.getElementById('bottom-part').hidden = false;
+            document.getElementById('map').style.height = '75%';
+        } else {
+            document.getElementById('bottom-part').hidden = true;
+            document.getElementById('map').style.height = '100%';
+        }
+    }
+
+    function drawArrow(num, x1, y1, x2, y2, color, pathDetails, isStart, isEnd, arrowScale = 1.3) {
+        const arrowLength = 12 * arrowScale * currentScale;
+        const lineWidth = 5 * currentScale;
         const angle = Math.atan2(y2 - y1, x2 - x1);
+
         const arrowX1 = x2 - arrowLength * Math.cos(angle - Math.PI / 9);
         const arrowY1 = y2 - arrowLength * Math.sin(angle - Math.PI / 9);
         const arrowX2 = x2 - arrowLength * Math.cos(angle + Math.PI / 9);
         const arrowY2 = y2 - arrowLength * Math.sin(angle + Math.PI / 9);
-        const info = pathDetails.info;
+
         const line = createSvgElement("line", {
             x1, y1, x2, y2,
             stroke: color,
@@ -48,25 +79,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const arrowHead = createSvgElement("polygon", {
             points: `${x2},${y2} ${arrowX1},${arrowY1} ${arrowX2},${arrowY2}`,
-            fill: color
+            fill: color,
+            stroke: "black",
+            "stroke-width": 1 * currentScale
         });
 
         svg.appendChild(line);
         svg.appendChild(arrowHead);
-
-        arrows.push({
-            x1,
-            y1,
-            x2,
-            y2,
-            radius: 8,
-            name: pathDetails.path[isStart ? 0 : num].name,
-            color,
-            pathDetails,
-            type: isStart ? 'start' : isEnd ? 'end' : 'mid',
-            info,
-        });
     }
+
+
 
     function createSvgElement(tag, attrs) {
         const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
@@ -91,11 +113,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function isMouseOverArrow(mouseX, mouseY, arrow) {
-        const distance = pointToLineDistance(mouseX, mouseY, arrow.x1, arrow.y1, arrow.x2, arrow.y2);
-        return distance <= arrow.radius + 6;
+        const container = document.getElementById('hallwayImage');
+        if (!container) {
+            console.error("hallwayImage container not found!");
+            return;
+        }
+
+        const { width, height } = container.getBoundingClientRect();
+        if (!width || !height) {
+            console.error("Container has zero width or height:", width, height);
+            return;
+        }
+        const x1 = arrow.x1Pct * width;
+        const y1 = arrow.y1Pct * height;
+        const x2 = arrow.x2Pct * width;
+        const y2 = arrow.y2Pct * height;
+        const distance = pointToLineDistance(mouseX, mouseY, x1, y1, x2, y2);
+
+        const close = distance <= 5;
+
+
+        return close;
     }
 
     function pointToLineDistance(px, py, x1, y1, x2, y2) {
+
         const A = px - x1;
         const B = py - y1;
         const C = x2 - x1;
@@ -132,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (start === false) {
             val = 1
         };
+        console.log(val);
         console.log("Trying to get full, here's the deets: ", pathDetails)
         const fullPath = pathDetails.path.map((point, index) => `${point.name}`).join(' -> ');
         if (pathDetails.info !== null) {
@@ -159,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleMouseMove(e) {
         const { mouseX, mouseY } = getMousePosition(e, svg);
         let tooltipVisible = false;
+
 
         arrows.forEach(arrow => {
             if (isMouseOverArrow(mouseX, mouseY, arrow)) {
@@ -191,9 +235,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     adjustSvgSize();
-    window.addEventListener('resize', adjustSvgSize);
+    window.addEventListener('resize', () => {
+        arrowFetch();
+
+    });
 
     document.getElementById("zoomIn").addEventListener("click", () => zoomCanvas(scaleFactor));
+    document.getElementById("viewTog").addEventListener("click", () => toggleMinimize());
     document.getElementById("zoomOut").addEventListener("click", () => zoomCanvas(1 / scaleFactor));
 
     document.addEventListener('keydown', (e) => {
@@ -206,6 +254,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('scheduleForm').addEventListener('submit', function (e) {
         e.preventDefault();
+
+        arrowFetch();
+
+
+
+    });
+    function arrowFetch() {
         const scaleStr = `scale(${currentScale})`;
         svg.style.transform = scaleStr;
         image.style.transform = scaleStr;
@@ -216,7 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const exit = document.getElementById('exitSelector').value;
         const checkbox = document.getElementById('midday');
         const isChecked = checkbox.checked;
-
         fetch("/schedule-post", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -236,8 +290,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 arrows.length = 0;
 
                 const curday = final_json[selectedDay];
+                const segmentMap = new Map();
+                const offsetSpacing = 6; // pixels
+
+                function getSegmentKey(n1, n2) {
+                    const id1 = `${n1.x},${n1.y}`;
+                    const id2 = `${n2.x},${n2.y}`;
+                    return [id1, id2].sort().join("|"); // ensures direction-agnostic key
+                }
+
                 curday.forEach((path, curnum) => {
-                    console.log("Current path: ", path)
+                    console.log("Current path: ", path);
                     const pathDetails = {
                         path: path["nodes"],
                         startName: path["nodes"][0].name,
@@ -246,24 +309,106 @@ document.addEventListener('DOMContentLoaded', () => {
                     };
 
                     for (let i = 1; i < path["nodes"].length; i++) {
-                        const startX = path["nodes"][i - 1]["x"] * manualScaleFactor * currentScale + curnum * xShift;
-                        const startY = path["nodes"][i - 1]["y"] * manualScaleFactor * currentScale + curnum * yShift;
-                        const endX = path["nodes"][i]["x"] * manualScaleFactor * currentScale + curnum * xShift;
-                        const endY = path["nodes"][i]["y"] * manualScaleFactor * currentScale + curnum * yShift;
+                        const container = document.getElementById('hallwayImage');
+                        const { width, height } = container.getBoundingClientRect();
 
-                        drawArrow(i, startX, startY, endX, endY, colorMap[curnum], pathDetails, i === 1, i === path.length - 1);
+                        const node1 = path["nodes"][i - 1];
+                        const node2 = path["nodes"][i];
+
+                        const segKey = getSegmentKey(node1, node2);
+                        const existingCount = segmentMap.get(segKey) || 0;
+                        segmentMap.set(segKey, existingCount + 1);
+
+                        // Get direction vector
+                        const dx = node2.x - node1.x;
+                        const dy = node2.y - node1.y;
+
+                        const len = Math.hypot(dx, dy) || 1;
+                        const dirX = dx / len;
+                        const dirY = dy / len;
+
+                        // Perpendicular vector (orthogonal)
+                        const orthoX = -dirY;
+                        const orthoY = dirX;
+
+                        // Apply offset orthogonally based on overlap count
+                        const offset = offsetSpacing * existingCount;
+
+                        const xOffset = orthoX * offset;
+                        const yOffset = orthoY * offset;
+
+                        const x1 = (node1.x + xOffset) * manualScaleFactor * currentScale;
+                        const y1 = (node1.y + yOffset) * manualScaleFactor * currentScale;
+                        const x2 = (node2.x + xOffset) * manualScaleFactor * currentScale;
+                        const y2 = (node2.y + yOffset) * manualScaleFactor * currentScale;
+
+                        arrows.push({
+                            x1Pct: x1 / width,
+                            y1Pct: y1 / height,
+                            x2Pct: x2 / width,
+                            y2Pct: y2 / height,
+                            color: colorMap[curnum],
+                            name: node2.name,
+                            pathDetails,
+                            num: i - 1,
+                            type: i === 1 ? 'start' : i === path["nodes"].length - 1 ? 'end' : 'mid'
+                        });
                     }
                 });
 
+
                 adjustSvgSize();
                 document.getElementById('error_message').innerHTML = "";
+                redrawArrows();
+
             })
 
-    });
+    }
+
+
+
 
     const arrows = [];
     const tooltip = document.getElementById('tooltip');
 
     svg.addEventListener('mousemove', handleMouseMove);
     svg.addEventListener('mouseleave', () => tooltip.style.display = 'none');
+    function redrawArrows() {
+
+        const container = document.getElementById('hallwayImage');
+        if (!container) {
+            console.error("hallwayImage container not found!");
+            return;
+        }
+
+        const { width, height } = container.getBoundingClientRect();
+        if (!width || !height) {
+            console.error("Container has zero width or height:", width, height);
+            return;
+        }
+
+        const offset = 1000 / width;
+
+
+
+        svg.innerHTML = '';
+
+        for (const arrow of arrows) {
+            const x1 = arrow.x1Pct * width / offset;
+            const y1 = arrow.y1Pct * height / offset;
+            const x2 = arrow.x2Pct * width / offset;
+            const y2 = arrow.y2Pct * height / offset;
+
+            drawArrow(
+                arrow.num,
+                x1, y1, x2, y2,
+                arrow.color,
+                arrow.pathDetails,
+                arrow.type === 'start',
+                arrow.type === 'end'
+            );
+        }
+    }
 });
+
+

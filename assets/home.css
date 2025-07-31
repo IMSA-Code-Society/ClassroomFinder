@@ -109,7 +109,9 @@ input:focus {
   }
 }
 
-.zoom-buttons {
+
+
+.view-buttons {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -119,7 +121,9 @@ input:focus {
 }
 
 
+
 #zoomIn,
+#viewTog,
 #zoomOut {
   width: 40px;
   height: 40px;
@@ -135,6 +139,7 @@ input:focus {
   transition: background-color 0.3s;
 }
 
+#viewTog:hover,
 #zoomIn:hover,
 #zoomOut:hover {
   background-color: #3C3D37;
@@ -251,4 +256,6 @@ textarea {
 #map {
   position: relative;
   display: inline-block;
+  
 }
+
