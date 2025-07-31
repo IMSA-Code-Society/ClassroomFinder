@@ -79,6 +79,50 @@
 
         </form>
     </div>
+    <script>
+
+        function saveToStorage(id, value) {
+            localStorage.setItem(id, value);
+        }
+
+        function loadFromStorage(id) {
+            return localStorage.getItem(id);
+        }
+
+
+        const elementsToPersist = [
+            "scheduleInput",
+            "daySelector",
+            "semSelector",
+            "enterSelector",
+            "exitSelector"
+        ];
+
+
+        window.addEventListener("DOMContentLoaded", () => {
+            elementsToPersist.forEach(id => {
+                const el = document.getElementById(id);
+                const saved = loadFromStorage(id);
+                if (saved !== null) {
+                    el.value = saved;
+                }
+
+                el.addEventListener("input", () => saveToStorage(id, el.value));
+                el.addEventListener("change", () => saveToStorage(id, el.value)); // for <select>
+            });
+
+
+            const checkbox = document.getElementById("midday");
+            const savedCheck = loadFromStorage("midday");
+            if (savedCheck !== null) {
+                checkbox.checked = savedCheck === "true";
+            }
+            checkbox.addEventListener("change", () => {
+                saveToStorage("midday", checkbox.checked);
+            });
+        });
+    </script>
+
 
 
     <div id="tooltip" class="tooltip"></div>

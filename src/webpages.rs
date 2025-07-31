@@ -42,7 +42,7 @@ fn serve_html(path: &str) -> impl Responder {
 }
 
 pub async fn save(mut payload: Multipart) -> Result<HttpResponse> {
-    println!("Saving...");
+    
     while let Ok(Some(mut field)) = payload.try_next().await {
         if let Some("file") = field.name() {
             let data: web::Bytes = field.next().await.unwrap().unwrap();
@@ -184,7 +184,7 @@ fn build_schedule_json(
     path_master_vec_2: DailyNode,
     nodes: &[Node],
 ) -> serde_json::Value {
-    dbg!(&path_master_vec_1);
+    
     let day_vecs1: [Option<Vec<FullClass>>; 5] = [
         path_master_vec_1.anode,
         path_master_vec_1.bnode,

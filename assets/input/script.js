@@ -62,19 +62,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawArrow(num, x1, y1, x2, y2, color, pathDetails, isStart, isEnd, arrowScale = 1.3) {
-        const arrowLength = 12 * arrowScale * currentScale;
-        const lineWidth = 5 * currentScale;
+        
         const angle = Math.atan2(y2 - y1, x2 - x1);
 
-        const arrowX1 = x2 - arrowLength * Math.cos(angle - Math.PI / 9);
-        const arrowY1 = y2 - arrowLength * Math.sin(angle - Math.PI / 9);
-        const arrowX2 = x2 - arrowLength * Math.cos(angle + Math.PI / 9);
-        const arrowY2 = y2 - arrowLength * Math.sin(angle + Math.PI / 9);
+        const arrowX1 = x2 -  Math.cos(angle - Math.PI / 9);
+        const arrowY1 = y2 - Math.sin(angle - Math.PI / 9);
+        const arrowX2 = x2 - Math.cos(angle + Math.PI / 9);
+        const arrowY2 = y2 -  Math.sin(angle + Math.PI / 9);
 
         const line = createSvgElement("line", {
             x1, y1, x2, y2,
             stroke: color,
-            "stroke-width": lineWidth
+            
         });
 
         const arrowHead = createSvgElement("polygon", {
@@ -296,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 function getSegmentKey(n1, n2) {
                     const id1 = `${n1.x},${n1.y}`;
                     const id2 = `${n2.x},${n2.y}`;
-                    return [id1, id2].sort().join("|"); // ensures direction-agnostic key
+                    return [id1, id2].sort().join("|"); 
                 }
 
                 curday.forEach((path, curnum) => {
@@ -319,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const existingCount = segmentMap.get(segKey) || 0;
                         segmentMap.set(segKey, existingCount + 1);
 
-                        // Get direction vector
+                        
                         const dx = node2.x - node1.x;
                         const dy = node2.y - node1.y;
 
@@ -327,11 +326,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         const dirX = dx / len;
                         const dirY = dy / len;
 
-                        // Perpendicular vector (orthogonal)
                         const orthoX = -dirY;
                         const orthoY = dirX;
 
-                        // Apply offset orthogonally based on overlap count
                         const offset = offsetSpacing * existingCount;
 
                         const xOffset = orthoX * offset;
