@@ -18,22 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const scaleFactor = 1.2;
     let currentScale = 1;
-    const manualScaleFactor = 1;
+    const manualScaleFactor = 0.86;
     const svg = document.getElementById("mySvg");
-    let original_image_rect = null;
 
     const image = document.getElementById('hallwayImage');
-
-    if (image.complete) {
-        original_image_rect = image.getBoundingClientRect();
-        console.log(original_image_rect);
-    } else {
-        image.addEventListener('load', () => {
-            original_image_rect = image.getBoundingClientRect();
-            console.log(original_image_rect);
-        });
-    }
-
 
 
     function adjustSvgSize() {
@@ -59,32 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('bottom-part').hidden = true;
             document.getElementById('map').style.height = '100%';
         }
-    }
-
-    function drawArrow(num, x1, y1, x2, y2, color, pathDetails, isStart, isEnd, arrowScale = 1.3) {
-        
-        const angle = Math.atan2(y2 - y1, x2 - x1);
-
-        const arrowX1 = x2 -  Math.cos(angle - Math.PI / 9);
-        const arrowY1 = y2 - Math.sin(angle - Math.PI / 9);
-        const arrowX2 = x2 - Math.cos(angle + Math.PI / 9);
-        const arrowY2 = y2 -  Math.sin(angle + Math.PI / 9);
-
-        const line = createSvgElement("line", {
-            x1, y1, x2, y2,
-            stroke: color,
-            
-        });
-
-        const arrowHead = createSvgElement("polygon", {
-            points: `${x2},${y2} ${arrowX1},${arrowY1} ${arrowX2},${arrowY2}`,
-            fill: color,
-            stroke: "black",
-            "stroke-width": 1 * currentScale
-        });
-
-        svg.appendChild(line);
-        svg.appendChild(arrowHead);
     }
 
 
@@ -290,12 +252,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const curday = final_json[selectedDay];
                 const segmentMap = new Map();
-                const offsetSpacing = 6; // pixels
+                const offsetSpacing = 3; // pixels
 
                 function getSegmentKey(n1, n2) {
                     const id1 = `${n1.x},${n1.y}`;
                     const id2 = `${n2.x},${n2.y}`;
-                    return [id1, id2].sort().join("|"); 
+                    return [id1, id2].sort().join("|");
                 }
 
                 curday.forEach((path, curnum) => {
@@ -318,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const existingCount = segmentMap.get(segKey) || 0;
                         segmentMap.set(segKey, existingCount + 1);
 
-                        
+
                         const dx = node2.x - node1.x;
                         const dy = node2.y - node1.y;
 
@@ -334,11 +296,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         const xOffset = orthoX * offset;
                         const yOffset = orthoY * offset;
 
-                        const x1 = (node1.x + xOffset) * manualScaleFactor * currentScale;
-                        const y1 = (node1.y + yOffset) * manualScaleFactor * currentScale;
-                        const x2 = (node2.x + xOffset) * manualScaleFactor * currentScale;
-                        const y2 = (node2.y + yOffset) * manualScaleFactor * currentScale;
-
+                        const x1 = (node1.x + xOffset) * manualScaleFactor / currentScale;
+                        const y1 = (node1.y + yOffset) * manualScaleFactor / currentScale;
+                        const x2 = (node2.x + xOffset) * manualScaleFactor / currentScale;
+                        const y2 = (node2.y + yOffset) * manualScaleFactor / currentScale;
                         arrows.push({
                             x1Pct: x1 / width,
                             y1Pct: y1 / height,
@@ -370,42 +331,133 @@ document.addEventListener('DOMContentLoaded', () => {
 
     svg.addEventListener('mousemove', handleMouseMove);
     svg.addEventListener('mouseleave', () => tooltip.style.display = 'none');
-    function redrawArrows() {
 
+
+
+    function redrawArrows() {
         const container = document.getElementById('hallwayImage');
-        if (!container) {
-            console.error("hallwayImage container not found!");
-            return;
-        }
+        if (!container) return console.error("hallwayImage container not found!");
 
         const { width, height } = container.getBoundingClientRect();
-        if (!width || !height) {
-            console.error("Container has zero width or height:", width, height);
-            return;
-        }
+        if (!width || !height) return console.error("Container has zero width or height:", width, height);
 
-        const offset = 1000 / width;
-
-
-
+        const offset = 1320 / width;
         svg.innerHTML = '';
 
-        for (const arrow of arrows) {
-            const x1 = arrow.x1Pct * width / offset;
-            const y1 = arrow.y1Pct * height / offset;
-            const x2 = arrow.x2Pct * width / offset;
-            const y2 = arrow.y2Pct * height / offset;
+        let currentColor = null;
+        let path = null;
+        let d = '';
 
-            drawArrow(
-                arrow.num,
-                x1, y1, x2, y2,
-                arrow.color,
-                arrow.pathDetails,
-                arrow.type === 'start',
-                arrow.type === 'end'
-            );
+        const radius = 12 / currentScale;
+        const shortenEnd = 6 / currentScale;
+        for (let i = 0; i < arrows.length; i++) {
+            const cur = arrows[i];
+            const x = cur.x1Pct * width / offset;
+            const y = cur.y1Pct * height / offset;
+
+            const nextX = cur.x2Pct * width / offset;
+            const nextY = cur.y2Pct * height / offset;
+
+
+            if (cur.color !== currentColor) {
+                if (path) {
+                    path.setAttribute("d", d);
+                    svg.appendChild(path);
+                }
+
+                path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke", cur.color);
+                path.setAttribute("stroke-width", 4 / currentScale);
+                path.setAttribute("stroke-linejoin", "round");
+                path.setAttribute("stroke-linecap", "round");
+
+                currentColor = cur.color;
+                d = `M ${x} ${y}`;
+                continue;
+            }
+
+
+            if (i > 0 && arrows[i - 1].color === cur.color) {
+                const prev = arrows[i - 1];
+                const px = prev.x1Pct * width / offset;
+                const py = prev.y1Pct * height / offset;
+
+                const dx1 = x - px;
+                const dy1 = y - py;
+                const len1 = Math.hypot(dx1, dy1);
+                const ux1 = dx1 / len1;
+                const uy1 = dy1 / len1;
+
+                const dx2 = nextX - x;
+                const dy2 = nextY - y;
+                const len2 = Math.hypot(dx2, dy2);
+                const ux2 = dx2 / len2;
+                const uy2 = dy2 / len2;
+
+
+                const corner1X = x - ux1 * radius;
+                const corner1Y = y - uy1 * radius;
+
+                const corner2X = x + ux2 * radius;
+                const corner2Y = y + uy2 * radius;
+
+
+                d += ` L ${corner1X} ${corner1Y}`;
+
+                d += ` Q ${x} ${y} ${corner2X} ${corner2Y}`;
+            }
+
+
+            const dx = nextX - x;
+            const dy = nextY - y;
+            const len = Math.hypot(dx, dy);
+
+            if (len > 0) {
+                const ux = dx / len;
+                const uy = dy / len;
+
+                const trimmedX = nextX - ux * shortenEnd;
+                const trimmedY = nextY - uy * shortenEnd;
+
+                d += `L ${trimmedX} ${trimmedY}`;
+            }
+
+
+            drawArrowhead(x, y, nextX, nextY, cur.color, 1.3 / currentScale);
+        }
+
+        if (path) {
+            path.setAttribute("d", d);
+            svg.appendChild(path);
         }
     }
+
+
+    function drawArrowhead(x1, y1, x2, y2, color, scale) {
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        const arrowLength = 12 * scale;
+
+        const tipX = x2;
+        const tipY = y2;
+
+        const baseX1 = tipX - arrowLength * Math.cos(angle - Math.PI / 8);
+        const baseY1 = tipY - arrowLength * Math.sin(angle - Math.PI / 8);
+
+        const baseX2 = tipX - arrowLength * Math.cos(angle + Math.PI / 8);
+        const baseY2 = tipY - arrowLength * Math.sin(angle + Math.PI / 8);
+
+        const arrowHead = createSvgElement("polygon", {
+            points: `${tipX},${tipY} ${baseX1},${baseY1} ${baseX2},${baseY2}`,
+            fill: color,
+            stroke: "black",
+            "stroke-width": 1
+        });
+
+        svg.appendChild(arrowHead);
+    }
+
+
+
+
 });
-
-

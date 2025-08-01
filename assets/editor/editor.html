@@ -1,38 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favico/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favico/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favico/favicon-16x16.png">
-    <link rel="manifest" href="/assets/favico/site.webmanifest">
-  <style>
-    canvas {
-      position: absolute;
-    }
-
-    .hallway {
-      position: absolute;
-    }
-
-    .input-container {
-      margin-top: 10px;
-    }
-  </style>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favico/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favico/favicon-16x16.png">
+  <link rel="manifest" href="/assets/favico/site.webmanifest">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Node Editor</title>
+  <link rel="stylesheet" href="/assets/home.css">
+  <script src="/assets/editor/script.js" defer></script>
 </head>
 
-<body style="background-color: #1E201E;">
-  <button onclick="save_nodes() " style="background-color: #3C3D37; border-width: 0; color: white ">Save all nodes</button>
-  <button onclick="visualize_nodes() " style="background-color: #3C3D37; border-width: 0; color: white ">Visualize</button>
-  <div class="input-container">
-    <input type="number" id="node1" placeholder="Node 1 ID" style="background-color: #3C3D37; border-width: 0; color: white " />
-    <input type="number" id="node2" placeholder="Node 2 ID" style="background-color: #3C3D37; border-width: 0; color: white "/>
-    <button onclick="calculate_distance()" style="background-color: #3C3D37; border-width: 0; color: white ">Get Distance</button>
-    <p id="distance-output"></p>
-    <script src="/assets/editor/script.js" defer></script>
+<body>
+  <div class="view-buttons">
+    <button id="viewTog">👁️</button>
+    <button id="zoomIn">+</button>
+    <button id="zoomOut">-</button>
   </div>
-  <img class="hallway" src="/image" />
-  <canvas width="1029" height="1182"></canvas>
+  <div class="map" id="map">
+    <img id="hallwayImage" class="hallway" src="/image" alt="Hallway Image">
+    <svg id="mySvg"></svg>
+  </div>
+
+
+  <div id="edit-bottom-part">
+    <button id="save-nodes">Save all
+      nodes</button>
+    <button id="vis-nodes">Visualize</button>
+    <div class="input-container">
+      <input type="number" id="node1" placeholder="Node 1 ID" />
+      <input type="number" id="node2" placeholder="Node 2 ID" />
+      <button id="calc-dist">Get
+        Distance</button>
+      <p id="distance-output"></p>
+    </div>
+  </div>
+
+
+  <div id="tooltip" class="tooltip"></div>
 </body>
+<style>
+  button {
+    background-color: #3C3D37;
+    border-width: 0;
+    color: white
+  }
+</style>
 
 </html>

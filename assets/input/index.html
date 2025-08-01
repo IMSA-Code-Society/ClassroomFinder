@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
+
 <head>
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/favico/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favico/favicon-32x32.png">
@@ -27,7 +28,7 @@
     <div id="bottom-part">
 
         <p style="color: white">The order of classes is by color. IE, red is 1st, orange 2nd...</p>
-        <textarea id="scheduleInput" placeholder="Enter schedule... " rows="10%" cols="150%"></textarea>
+        <textarea id="scheduleInput" placeholder="Enter schedule... " rows="6%" cols="150%"></textarea>
         <form id="scheduleForm">
 
             <br>
@@ -80,6 +81,14 @@
         </form>
     </div>
     <script>
+
+        window.addEventListener("load", () => {
+            const map = document.getElementById("map");
+            const scrollHeight = map.scrollHeight - map.clientHeight;
+            map.scrollTop = scrollHeight * 0.25;
+        });
+
+
 
         function saveToStorage(id, value) {
             localStorage.setItem(id, value);

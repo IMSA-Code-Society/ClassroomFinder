@@ -8,6 +8,11 @@ canvas {
   width: 200%;
 }
 
+.edit-bottom-part {
+  background-color: #3C3D37;
+  border-width: 0;
+  color: white;
+}
 
 body {
   background-color: #1E201E;
@@ -19,9 +24,7 @@ body {
   align-items: center;
 }
 
-.map::-webkit-scrollbar {
-  display: none;
-}
+
 
 .filler_box {
   width: 100vw;
@@ -256,6 +259,5 @@ textarea {
 #map {
   position: relative;
   display: inline-block;
-  
-}
 
+}
