@@ -112,6 +112,8 @@ fn name_to_id(name: &str, nodes: &[Node]) -> Option<usize> {
 
 #[shuttle_runtime::main]
 async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
+    
+
     let config = move |cfg: &mut web::ServiceConfig| {
         cfg.service(
             web::scope("")
