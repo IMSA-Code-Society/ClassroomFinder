@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const fromNode = nodes_array.find(n => n.id === set_connection.id);
           fromNode.neighbor_nodes.push([nodes_array[i].id, distance]);
 
-          // Create line between the two
           const line = document.createElementNS(SVG_NS, "line");
           line.setAttribute("x1", nodes_array[i].x);
           line.setAttribute("y1", nodes_array[i].y);
@@ -150,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         });
         data.forEach(node => {
-          // Draw the node as a circle
+
           const circle = document.createElementNS(SVG_NS, "circle");
           circle.setAttribute("cx", node.x);
           circle.setAttribute("cy", node.y);
@@ -159,7 +158,6 @@ document.addEventListener('DOMContentLoaded', () => {
           circle.setAttribute("stroke", "green");
           svg.appendChild(circle);
 
-          // Draw the node label as text
           const label = document.createElementNS(SVG_NS, "text");
           label.setAttribute("x", node.x + 2);
           label.setAttribute("y", node.y + 2);

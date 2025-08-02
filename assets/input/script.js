@@ -126,6 +126,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
+    function isStairNode(node) {
+        return /Stair.*F[12]$/.test(node.name);
+    }
+
+
 
 
     function getFullPathDescription(pathDetails, start) {
@@ -300,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const y1 = (node1.y + yOffset) * manualScaleFactor / currentScale;
                         const x2 = (node2.x + xOffset) * manualScaleFactor / currentScale;
                         const y2 = (node2.y + yOffset) * manualScaleFactor / currentScale;
+                        const isStair = isStairNode(node1) && isStairNode(node2);
                         arrows.push({
                             x1Pct: x1 / width,
                             y1Pct: y1 / height,
@@ -309,8 +315,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             name: node2.name,
                             pathDetails,
                             num: i - 1,
-                            type: i === 1 ? 'start' : i === path["nodes"].length - 1 ? 'end' : 'mid'
+                            type: i === 1 ? 'start' : i === path["nodes"].length - 1 ? 'end' : 'mid',
+                            isStairTransition: isStair
                         });
+
                     }
                 });
 
@@ -332,6 +340,17 @@ document.addEventListener('DOMContentLoaded', () => {
     svg.addEventListener('mousemove', handleMouseMove);
     svg.addEventListener('mouseleave', () => tooltip.style.display = 'none');
 
+    function drawCircle(cx, cy, color) {
+        const circle = createSvgElement("circle", {
+            cx,
+            cy,
+            r: 8 / currentScale,
+            fill: color,
+            stroke: "black",
+            "stroke-width": 1
+        });
+        svg.appendChild(circle);
+    }
 
 
     function redrawArrows() {
@@ -350,81 +369,133 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const radius = 12 / currentScale;
         const shortenEnd = 6 / currentScale;
+        console.log(arrows);
         for (let i = 0; i < arrows.length; i++) {
+
+
             const cur = arrows[i];
+
             const x = cur.x1Pct * width / offset;
             const y = cur.y1Pct * height / offset;
 
             const nextX = cur.x2Pct * width / offset;
             const nextY = cur.y2Pct * height / offset;
 
+            if (cur.isStairTransition) {
+                drawCircle(x, y, cur.color);
+                drawCircle(nextX, nextY, cur.color);
+                function makeText(x, y, text) {
+                    const SVG_NS = "http://www.w3.org/2000/svg";
 
-            if (cur.color !== currentColor) {
+                    const rect = document.createElementNS(SVG_NS, "rect");
+                    rect.setAttribute("x", x + 5);
+                    rect.setAttribute("y", y - 10); 
+                    rect.setAttribute("width", 120);
+                    rect.setAttribute("height", 30);
+                    rect.setAttribute("fill", "yellow");
+                    rect.setAttribute("fill-opacity", "0.5");
+
+                    svg.appendChild(rect);
+
+
+                    const label = document.createElementNS(SVG_NS, "text");
+                    label.setAttribute("font-weight", "bold");
+
+                    label.setAttribute("x", x + 10);
+                    label.setAttribute("y", y + 5);
+                    label.setAttribute("fill", "black");
+                    label.setAttribute("font-size", "12");
+                    label.textContent = text;
+                    svg.appendChild(label);
+                }
+                if ((cur.name).includes("F1")) {
+                    makeText(x, y, "Take stairs down");
+                } else {
+                    makeText(x, y, "Take stairs up");
+                }
+
+               
                 if (path) {
                     path.setAttribute("d", d);
                     svg.appendChild(path);
+                    path = null;
+                    d = '';
+                    currentColor = null;
                 }
 
-                path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                path.setAttribute("fill", "none");
-                path.setAttribute("stroke", cur.color);
-                path.setAttribute("stroke-width", 4 / currentScale);
-                path.setAttribute("stroke-linejoin", "round");
-                path.setAttribute("stroke-linecap", "round");
-
-                currentColor = cur.color;
-                d = `M ${x} ${y}`;
                 continue;
             }
+            else {
+                console.log(i);
+                if (cur.color !== currentColor) {
+                    if (path) {
+                        path.setAttribute("d", d);
+                        svg.appendChild(path);
+
+                    }
+
+                    path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    path.setAttribute("fill", "none");
+                    path.setAttribute("stroke", cur.color);
+                    path.setAttribute("stroke-width", 2 / currentScale);
+                    path.setAttribute("stroke-linejoin", "round");
+                    path.setAttribute("stroke-linecap", "round");
+
+                    currentColor = cur.color;
+                    d = `M ${x} ${y}`;
+                    continue;
+                }
 
 
-            if (i > 0 && arrows[i - 1].color === cur.color) {
-                const prev = arrows[i - 1];
-                const px = prev.x1Pct * width / offset;
-                const py = prev.y1Pct * height / offset;
+                if (i > 0 && arrows[i - 1].color === cur.color) {
+                    const prev = arrows[i - 1];
+                    const px = prev.x1Pct * width / offset;
+                    const py = prev.y1Pct * height / offset;
 
-                const dx1 = x - px;
-                const dy1 = y - py;
-                const len1 = Math.hypot(dx1, dy1);
-                const ux1 = dx1 / len1;
-                const uy1 = dy1 / len1;
+                    const dx1 = x - px;
+                    const dy1 = y - py;
+                    const len1 = Math.hypot(dx1, dy1);
+                    const ux1 = dx1 / len1;
+                    const uy1 = dy1 / len1;
 
-                const dx2 = nextX - x;
-                const dy2 = nextY - y;
-                const len2 = Math.hypot(dx2, dy2);
-                const ux2 = dx2 / len2;
-                const uy2 = dy2 / len2;
-
-
-                const corner1X = x - ux1 * radius;
-                const corner1Y = y - uy1 * radius;
-
-                const corner2X = x + ux2 * radius;
-                const corner2Y = y + uy2 * radius;
+                    const dx2 = nextX - x;
+                    const dy2 = nextY - y;
+                    const len2 = Math.hypot(dx2, dy2);
+                    const ux2 = dx2 / len2;
+                    const uy2 = dy2 / len2;
 
 
-                d += ` L ${corner1X} ${corner1Y}`;
+                    const corner1X = x - ux1 * radius;
+                    const corner1Y = y - uy1 * radius;
 
-                d += ` Q ${x} ${y} ${corner2X} ${corner2Y}`;
+                    const corner2X = x + ux2 * radius;
+                    const corner2Y = y + uy2 * radius;
+
+
+                    d += ` L ${corner1X} ${corner1Y}`;
+
+                    d += ` Q ${x} ${y} ${corner2X} ${corner2Y}`;
+                }
+
+
+                const dx = nextX - x;
+                const dy = nextY - y;
+                const len = Math.hypot(dx, dy);
+
+                if (len > 0) {
+                    const ux = dx / len;
+                    const uy = dy / len;
+
+                    const trimmedX = nextX - ux * shortenEnd;
+                    const trimmedY = nextY - uy * shortenEnd;
+
+                    d += `L ${trimmedX} ${trimmedY}`;
+                }
+
+
+                drawArrowhead(x, y, nextX, nextY, cur.color, 1.3 / currentScale);
             }
 
-
-            const dx = nextX - x;
-            const dy = nextY - y;
-            const len = Math.hypot(dx, dy);
-
-            if (len > 0) {
-                const ux = dx / len;
-                const uy = dy / len;
-
-                const trimmedX = nextX - ux * shortenEnd;
-                const trimmedY = nextY - uy * shortenEnd;
-
-                d += `L ${trimmedX} ${trimmedY}`;
-            }
-
-
-            drawArrowhead(x, y, nextX, nextY, cur.color, 1.3 / currentScale);
         }
 
         if (path) {
@@ -441,8 +512,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const tipX = x2;
         const tipY = y2;
 
-        const baseX1 = tipX - arrowLength * Math.cos(angle - Math.PI / 8);
-        const baseY1 = tipY - arrowLength * Math.sin(angle - Math.PI / 8);
+        const baseX1 = tipX - arrowLength * Math.cos(angle - Math.PI / 20);
+        const baseY1 = tipY - arrowLength * Math.sin(angle - Math.PI / 20);
 
         const baseX2 = tipX - arrowLength * Math.cos(angle + Math.PI / 8);
         const baseY2 = tipY - arrowLength * Math.sin(angle + Math.PI / 8);

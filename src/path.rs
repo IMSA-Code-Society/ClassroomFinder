@@ -348,7 +348,7 @@ pub fn node_find_func(
             if class.room.trim().is_empty() {
                 continue;
             }
-
+            println!("{:?}", name_to_id(&class.room.trim().to_lowercase(), &nodes));
             let start_room = name_to_id(&class.room.trim().to_lowercase(), &nodes)
                 .ok_or(format!("The room '{}' was not recognized", class.room))?;
 
@@ -381,7 +381,7 @@ pub fn node_find_func(
             let start_path = {
                 let start_room_id = match entrance {
                     EnterExit::WestMain => 146,
-                    EnterExit::EastMain => 0,
+                    EnterExit::EastMain => 25,
                     EnterExit::D13 => 145,
                     EnterExit::D6 => 147,
                 };
@@ -411,7 +411,7 @@ pub fn node_find_func(
             let end_path = {
                 let end_room_id = match exit {
                     EnterExit::WestMain => 146,
-                    EnterExit::EastMain => 0,
+                    EnterExit::EastMain => 25,
                     EnterExit::D13 => 145,
                     EnterExit::D6 => 147,
                 };
