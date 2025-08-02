@@ -104,9 +104,11 @@ fn reset_nodes(nodes: &mut [Node]) {
 }
 
 fn name_to_id(name: &str, nodes: &[Node]) -> Option<usize> {
+    
+    println!("init {}", name);
     nodes
         .iter()
-        .find(|node| node.name == name)
+        .find(|node|{println!("{}", node.name); node.name.to_lowercase() == name.to_lowercase()})
         .map(|node| node.id)
 }
 
