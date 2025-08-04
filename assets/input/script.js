@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     rect.setAttribute("y", y - 10); 
                     rect.setAttribute("width", 120);
                     rect.setAttribute("height", 30);
-                    rect.setAttribute("fill", "yellow");
+                    rect.setAttribute("fill", cur.color);
                     rect.setAttribute("fill-opacity", "0.5");
 
                     svg.appendChild(rect);
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 continue;
             }
             else {
-                console.log(i);
+                
                 if (cur.color !== currentColor) {
                     if (path) {
                         path.setAttribute("d", d);
@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     path = document.createElementNS("http://www.w3.org/2000/svg", "path");
                     path.setAttribute("fill", "none");
                     path.setAttribute("stroke", cur.color);
-                    path.setAttribute("stroke-width", 2 / currentScale);
+                    path.setAttribute("stroke-width", 2);
                     path.setAttribute("stroke-linejoin", "round");
                     path.setAttribute("stroke-linecap", "round");
 
@@ -507,16 +507,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function drawArrowhead(x1, y1, x2, y2, color, scale) {
         const angle = Math.atan2(y2 - y1, x2 - x1);
-        const arrowLength = 12 * scale;
+        const arrowLength = 12;
 
         const tipX = x2;
         const tipY = y2;
 
-        const baseX1 = tipX - arrowLength * Math.cos(angle - Math.PI / 20);
-        const baseY1 = tipY - arrowLength * Math.sin(angle - Math.PI / 20);
+        const baseX1 = tipX - arrowLength * Math.cos(angle - Math.PI / 10);
+        const baseY1 = tipY - arrowLength * Math.sin(angle - Math.PI / 10);
 
-        const baseX2 = tipX - arrowLength * Math.cos(angle + Math.PI / 8);
-        const baseY2 = tipY - arrowLength * Math.sin(angle + Math.PI / 8);
+        const baseX2 = tipX - arrowLength * Math.cos(angle + Math.PI / 10);
+        const baseY2 = tipY - arrowLength * Math.sin(angle + Math.PI / 10);
 
         const arrowHead = createSvgElement("polygon", {
             points: `${tipX},${tipY} ${baseX1},${baseY1} ${baseX2},${baseY2}`,
