@@ -1,10 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
-  
+
   const svg = document.getElementById("mySvg");
   const SVG_NS = "http://www.w3.org/2000/svg";
 
   let nodes_array = [];
   let id_increment = 0;
+  fetch("/assets/nodes.json")
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+      nodes_array = data;
+      id_increment = nodes_array[nodes_array.length -1].id + 1;
+    });
+
+
   let mouse_state = true;
   let set_connection = null;
   const scaleFactor = 1.2;
@@ -15,6 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const image = document.getElementById('hallwayImage');
 
   let alreadyPrompted = false;
+  console.log(nodes_array);
+
+  
   svg.addEventListener("mousedown", (current_click) => {
 
 
@@ -25,8 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     for (let i = 0; i < nodes_array.length; i++) {
       let distance = Math.sqrt(Math.pow(nodes_array[i].x - x, 2) + Math.pow(nodes_array[i].y - y, 2));
-      if (distance < 10) {
+      if (distance < 3) {
         click_existing = true;
+        ;
+
+        if (current_click.shiftKey) {
+          console.log(nodes_array);
+          nodes_array.splice(i, i);
+          console.log(nodes_array);
+        };
         if (mouse_state) {
           set_connection = nodes_array[i];
           mouse_state = false;
@@ -52,7 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (click_existing) return;
-
+    mouse_state = true;
+    const user_input = prompt("Node name: ");
+    if (user_input === null) {
+      return;
+    }
     const circle = document.createElementNS(SVG_NS, "circle");
     circle.setAttribute("cx", x);
     circle.setAttribute("cy", y);
@@ -61,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     circle.setAttribute("stroke", "yellow");
     svg.appendChild(circle);
 
-    const user_input = prompt("Node name: ");
+
     const label = document.createElementNS(SVG_NS, "text");
     label.setAttribute("x", x + 10);
     label.setAttribute("y", y + 5);
@@ -120,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
     svg.style.height = `${imageRect.height}px`;
     svg.setAttribute("viewBox", `0 0 ${imageRect.width} ${imageRect.height}`);
   }
-  
+
   function visualize_nodes() {
     fetch("/assets/nodes.json")
       .then(response => response.json())
@@ -142,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
               line.setAttribute("y1", node.y);
               line.setAttribute("x2", neighborNode.x);
               line.setAttribute("y2", neighborNode.y);
-              line.setAttribute("stroke", "green");
+              line.setAttribute("stroke", "blue");
               svg.appendChild(line);
 
             }
@@ -162,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
           label.setAttribute("x", node.x + 2);
           label.setAttribute("y", node.y + 2);
           label.setAttribute("fill", "orange");
-          label.setAttribute("font-size", "6px");
+          label.setAttribute("font-size", "3px");
           label.setAttribute("font-family", "Arial");
           label.textContent = node.id + node.name;
           svg.appendChild(label);

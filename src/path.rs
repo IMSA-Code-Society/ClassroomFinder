@@ -348,7 +348,10 @@ pub fn node_find_func(
             if class.room.trim().is_empty() {
                 continue;
             }
-            println!("{:?}", name_to_id(&class.room.trim().to_lowercase(), &nodes));
+            println!(
+                "{:?}",
+                name_to_id(&class.room.trim().to_lowercase(), &nodes)
+            );
             let start_room = name_to_id(&class.room.trim().to_lowercase(), &nodes)
                 .ok_or(format!("The room '{}' was not recognized", class.room))?;
 
@@ -378,12 +381,13 @@ pub fn node_find_func(
         let mut day_vec = Vec::new();
 
         if let Some(first_class) = day.first().and_then(|fc| fc.as_ref()) {
+
             let start_path = {
                 let start_room_id = match entrance {
-                    EnterExit::WestMain => 146,
-                    EnterExit::EastMain => 25,
-                    EnterExit::D13 => 145,
-                    EnterExit::D6 => 147,
+                    EnterExit::WestMain => 990,
+                    EnterExit::EastMain => 989,
+                    EnterExit::D13 => 692,
+                    EnterExit::D6 => 693,
                 };
                 pathfinding::time_path(start_room_id, first_class.0[0], &mut nodes)
             };
@@ -394,8 +398,8 @@ pub fn node_find_func(
             if vecpath.is_none() && checked {
                 if let Some(prev_class) = day.get(iter.wrapping_sub(1)).and_then(|p| p.as_ref()) {
                     if let Some(next_class) = day.get(iter + 1).and_then(|n| n.as_ref()) {
-                        let to_lex = pathfinding::time_path(prev_class.0[1], 55, &mut nodes);
-                        let from_lex = pathfinding::time_path(55, next_class.0[1], &mut nodes);
+                        let to_lex = pathfinding::time_path(prev_class.0[1], 354, &mut nodes);
+                        let from_lex = pathfinding::time_path(354, next_class.0[1], &mut nodes);
                         day_vec.push((to_lex, (prev_class.1 .1.clone(), None)));
                         day_vec.push((from_lex, (None, next_class.1 .1.clone())));
                     }
@@ -410,10 +414,10 @@ pub fn node_find_func(
         if let Some(last_class) = day.last().and_then(|lc| lc.as_ref()) {
             let end_path = {
                 let end_room_id = match exit {
-                    EnterExit::WestMain => 146,
-                    EnterExit::EastMain => 25,
-                    EnterExit::D13 => 145,
-                    EnterExit::D6 => 147,
+                    EnterExit::WestMain => 990,
+                    EnterExit::EastMain => 989,
+                    EnterExit::D13 => 692,
+                    EnterExit::D6 => 693,
                 };
                 pathfinding::time_path(last_class.0[1], end_room_id, &mut nodes)
             };
