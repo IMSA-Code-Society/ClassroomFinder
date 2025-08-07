@@ -348,10 +348,7 @@ pub fn node_find_func(
             if class.room.trim().is_empty() {
                 continue;
             }
-            println!(
-                "{:?}",
-                name_to_id(&class.room.trim().to_lowercase(), &nodes)
-            );
+
             let start_room = name_to_id(&class.room.trim().to_lowercase(), &nodes)
                 .ok_or(format!("The room '{}' was not recognized", class.room))?;
 

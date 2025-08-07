@@ -74,7 +74,7 @@ pub async fn directions(web::Json(request): web::Json<serde_json::Value>) -> imp
 
     let shortest_path: Vec<usize> = pathfinding::time_path(start_room, destination, &mut nodes);
     let path_json: Vec<serde_json::Value> = build_direct_json(&shortest_path, &nodes);
-    println!("here: {:?}", &path_json);
+
 
     HttpResponse::Ok().json(serde_json::json!({ "path": path_json }))
 }
@@ -178,7 +178,7 @@ pub async fn schedule_handle(web::Json(request): web::Json<serde_json::Value>) -
             }
         };
     let json: serde_json::Value = build_schedule_json(path_master_vec_1, path_master_vec_2, &nodes);
-    dbg!(&json);
+    
     HttpResponse::Ok().json(json)
 }
 
