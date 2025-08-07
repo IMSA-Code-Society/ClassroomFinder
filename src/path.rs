@@ -393,7 +393,7 @@ pub fn node_find_func(
             };
             day_vec.push((start_path, (None, first_class.1 .0.clone())));
         }
-
+        let mut skip = false;
         for (iter, vecpath) in day.iter().enumerate() {
             if vecpath.is_none() && checked {
                 if let Some(prev_class) = day.get(iter.wrapping_sub(1)).and_then(|p| p.as_ref()) {
@@ -402,9 +402,11 @@ pub fn node_find_func(
                         let from_lex = pathfinding::time_path(354, next_class.0[1], &mut nodes);
                         day_vec.push((to_lex, (prev_class.1 .1.clone(), None)));
                         day_vec.push((from_lex, (None, next_class.1 .1.clone())));
+                        skip = true;
                     }
                 }
             } else if let Some(ref full_class) = vecpath {
+                if skip {skip = false; continue;}
                 let shortest_path =
                     pathfinding::time_path(full_class.0[0], full_class.0[1], &mut nodes);
                 day_vec.push((shortest_path, full_class.1.clone()));
