@@ -104,18 +104,14 @@ fn reset_nodes(nodes: &mut [Node]) {
 }
 
 fn name_to_id(name: &str, nodes: &[Node]) -> Option<usize> {
-    
-    println!("init {}", name);
     nodes
         .iter()
-        .find(|node|{println!("{}", node.name); node.name.to_lowercase() == name.to_lowercase()})
+        .find(|node| node.name.to_lowercase() == name.to_lowercase())
         .map(|node| node.id)
 }
 
 #[shuttle_runtime::main]
 async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clone + 'static> {
-    
-
     let config = move |cfg: &mut web::ServiceConfig| {
         cfg.service(
             web::scope("")
