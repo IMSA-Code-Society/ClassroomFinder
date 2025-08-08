@@ -1,4 +1,4 @@
-use crate::path::{node_find_func, Class, DailyNode, EnterExit, FullClass};
+use crate::path::{node_find_func, Class, DailyNode, EnterExit, FullPathway};
 use crate::{
     file_utils, name_to_id, path::get_schedule, path::path, pathfinding, reset_nodes, Node,
 };
@@ -79,9 +79,10 @@ pub async fn directions(web::Json(request): web::Json<serde_json::Value>) -> imp
     HttpResponse::Ok().json(serde_json::json!({ "path": path_json }))
 }
 
-fn build_path_json(path: &FullClass, nodes: &[Node]) -> serde_json::Value {
-    let nodes: serde_json::Value = path
-        .0
+fn build_path_json(path: &FullPathway, nodes: &[Node]) -> serde_json::Value {
+
+    
+    let nodes: serde_json::Value = path.0
         .iter()
         .map(|&index| {
             serde_json::json!({
@@ -97,6 +98,7 @@ fn build_path_json(path: &FullClass, nodes: &[Node]) -> serde_json::Value {
         "nodes": nodes,
     });
     real_json
+    
 }
 fn build_direct_json(path: &[usize], nodes: &[Node]) -> Vec<serde_json::Value> {
     path.iter()
@@ -188,22 +190,20 @@ fn build_schedule_json(
     nodes: &[Node],
 ) -> serde_json::Value {
     
-    let day_vecs1: [Option<Vec<FullClass>>; 5] = [
+    let day_vecs1: [Option<Vec<FullPathway>>; 4] = [
         path_master_vec_1.anode,
         path_master_vec_1.bnode,
-        path_master_vec_1.inode,
         path_master_vec_1.cnode,
         path_master_vec_1.dnode,
     ];
 
-    let day_vecs2: [Option<Vec<FullClass>>; 5] = [
+    let day_vecs2: [Option<Vec<FullPathway>>; 4] = [
         path_master_vec_2.anode,
         path_master_vec_2.bnode,
-        path_master_vec_2.inode,
         path_master_vec_2.cnode,
         path_master_vec_2.dnode,
     ];
-    let day_names: [&str; 5] = ["aday", "bday", "iday", "cday", "dday"];
+    let day_names: [&str; 4] = ["aday", "bday", "cday", "dday"];
 
     let mut json1: serde_json::Value = serde_json::json!({});
     let mut json2: serde_json::Value = serde_json::json!({});
@@ -212,7 +212,7 @@ fn build_schedule_json(
         if let Some(val) = day_vec {
             let day_paths: Vec<serde_json::Value> = val
                 .iter()
-                .map(|secval: &FullClass| build_path_json(secval, nodes))
+                .map(|secval: &FullPathway| build_path_json(secval, nodes))
                 .collect();
             json1[day_name] = serde_json::json!(day_paths);
         }
