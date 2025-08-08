@@ -24,7 +24,7 @@ struct ScheduleInfo {
     end: Vec<String>,
 }
 
-#[derive(Debug, Copy, Clone, serde::Serialize)]
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone, serde::Serialize)]
 enum Semester {
     S1,
     S2,
@@ -39,9 +39,25 @@ enum Day {
     D,
     I,
 }
-pub type FullClass = (Vec<usize>, (Option<Class>, Option<Class>));
+#[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize)]
+pub enum Location {
+    Entrance,
+    Exit,
+    Classroom(Class),
+    Lexington,
+}
+#[derive(Debug, serde::Serialize, Clone)]
+pub struct BasicPathway {
+    pub start: usize,
+    pub end: usize,
 
-#[derive(Debug, Clone, serde::Serialize)]
+    pub start_spot: Location,
+    pub end_spot: Location,
+}
+
+pub type FullPathway = (Vec<usize>, (Option<Class>, Option<Class>));
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize)]
 pub struct Class {
     days: Vec<Day>,
     mods: Vec<u8>,
@@ -56,11 +72,10 @@ pub struct Class {
 
 #[derive(Debug, serde::Serialize)]
 pub struct DailyNode {
-    pub anode: Option<Vec<FullClass>>,
-    pub bnode: Option<Vec<FullClass>>,
-    pub inode: Option<Vec<FullClass>>,
-    pub cnode: Option<Vec<FullClass>>,
-    pub dnode: Option<Vec<FullClass>>,
+    pub anode: Option<Vec<FullPathway>>,
+    pub bnode: Option<Vec<FullPathway>>,
+    pub cnode: Option<Vec<FullPathway>>,
+    pub dnode: Option<Vec<FullPathway>>,
 }
 
 pub enum EnterExit {
@@ -334,115 +349,238 @@ pub fn node_find_func(
     exit: &EnterExit,
     checked: bool,
 ) -> Result<(DailyNode, Vec<Node>), String> {
-    let mut master_vec: Vec<Vec<Option<FullClass>>> = Vec::new();
+    let mut master_vec: Vec<Vec<BasicPathway>> = Vec::new();
 
-    for day in schedule {
-        let mut day_vec: Vec<Option<FullClass>> = Vec::new();
+    for (count, day) in schedule.iter().enumerate() {
+        //skip I day
+        if count == 2 {
+            continue;
+        }
 
-        for (num, class) in day.iter().enumerate() {
-            //(for midday)
-            if num == 3 {
-                day_vec.push(None);
+        let mut clean_classes: Vec<Option<Class>> = Vec::new();
+        for (itermark, class) in day.iter().enumerate() {
+            let r_class = *class;
+            if !class.room.trim().is_empty() {
+                clean_classes.push(Some(r_class.clone()));
             }
+            if itermark == 3 && checked {
+                clean_classes.push(None)
+            }
+        }
+        if count == 2 {
+            println!("{:#?}", clean_classes);
+        }
 
-            if class.room.trim().is_empty() {
+        let mut day_vec: Vec<BasicPathway> = Vec::new();
+        for (num, rawclass) in clean_classes.iter().enumerate() {
+            if clean_classes.len() == 1 || num == clean_classes.len() - 1 {
                 continue;
+            };
+
+            if count == 2 {
+                println!(
+                    "Looking for a connection for class {:#?}. num is {num}",
+                    rawclass
+                );
             }
 
-            let start_room = name_to_id(&class.room.trim().to_lowercase(), &nodes)
-                .ok_or(format!("The room '{}' was not recognized", class.room))?;
+            if *rawclass == None {
+                let start_class;
+                match clean_classes[num.saturating_sub(1)].clone() {
+                    Some(thing) => {
+                        start_class = thing;
+                        let start_id =
+                            name_to_id(&start_class.room.trim().to_lowercase(), &nodes).unwrap();
+                        day_vec.push(BasicPathway {
+                            start: start_id,
+                            end: 354,
+                            start_spot: Location::Classroom(start_class),
+                            end_spot: Location::Lexington,
+                        });
+                        let end_class = clean_classes[num + 1].clone().unwrap();
+                        let end_id =
+                            name_to_id(&end_class.room.trim().to_lowercase(), &nodes).unwrap();
+                        day_vec.push(BasicPathway {
+                            start: 354,
+                            end: end_id,
+                            start_spot: Location::Lexington,
+                            end_spot: Location::Classroom(end_class),
+                        });
+                    }
+                    None => {
+                        let entrance_id = match entrance {
+                            EnterExit::WestMain => 988,
+                            EnterExit::EastMain => 987,
+                            EnterExit::D13 => 691,
+                            EnterExit::D6 => 692,
+                        };
+                        day_vec.push(BasicPathway {
+                            start: entrance_id,
+                            end: 354,
+                            start_spot: Location::Entrance,
+                            end_spot: Location::Lexington,
+                        });
+                        let end_class = clean_classes[num + 1].clone().unwrap();
+                        let end_id =
+                            name_to_id(&end_class.room.trim().to_lowercase(), &nodes).unwrap();
+                        day_vec.push(BasicPathway {
+                            start: 354,
+                            end: end_id,
+                            start_spot: Location::Lexington,
+                            end_spot: Location::Classroom(end_class),
+                        });
+                    }
+                }
+            } else {
+                let class = rawclass.clone().unwrap();
+                if class.mods.contains(&4) && checked {
+                    continue;
+                }
+                if num == 0 {
+                    let first_class = name_to_id(&class.room.trim().to_lowercase(), &nodes)
+                        .ok_or(format!("The room '{}' was not recognized", class.room))?;
+                    let entrance_id = match entrance {
+                        EnterExit::WestMain => 988,
+                        EnterExit::EastMain => 987,
+                        EnterExit::D13 => 691,
+                        EnterExit::D6 => 692,
+                    };
+                    day_vec.push(BasicPathway {
+                        start: entrance_id,
+                        end: first_class,
+                        start_spot: Location::Entrance,
+                        end_spot: Location::Classroom(class.clone()),
+                    });
+                    //normal
 
-            if let Some(next_class) = find_next_class(day, num) {
-                let next_room = name_to_id(&next_class.room.trim().to_lowercase(), &nodes)
-                    .ok_or(format!("The room '{}' was not recognized", next_class.room))?;
-                if start_room != next_room {
-                    day_vec.push(Some((
-                        vec![start_room, next_room],
-                        (Some((*class).clone()), Some(next_class.clone())),
-                    )));
+                    if clean_classes[num + 1] != None {
+                        let start_room = name_to_id(&class.room.trim().to_lowercase(), &nodes)
+                            .ok_or(format!("The room '{}' was not recognized", class.room))?;
+                        let next_class: &Class = &get_next_class(clean_classes.clone(), num);
+
+                        let next_room = name_to_id(&next_class.room.trim().to_lowercase(), &nodes)
+                            .ok_or(format!("The room '{}' was not recognized", next_class.room))?;
+                        if count == 3 {
+                            println!(
+                                "Making connection between rooms {:#?} and {:#?}",
+                                class, next_class
+                            );
+                        }
+
+                        if start_room != next_room {
+                            day_vec.push(BasicPathway {
+                                start: start_room,
+                                end: next_room,
+                                start_spot: Location::Classroom(class.clone()),
+                                end_spot: Location::Classroom(next_class.clone()),
+                            });
+                        }
+                    }
+                } else {
+                    let start_room = name_to_id(&class.room.trim().to_lowercase(), &nodes)
+                        .ok_or(format!("The room '{}' was not recognized", class.room))?;
+
+                    let next_class: &Class = &get_next_class(clean_classes.clone(), num);
+
+                    let next_room = name_to_id(&next_class.room.trim().to_lowercase(), &nodes)
+                        .ok_or(format!("The room '{}' was not recognized", next_class.room))?;
+                    if count == 3 {
+                        println!(
+                            "Making connection between rooms {:#?} and {:#?}",
+                            class, next_class
+                        );
+                    }
+
+                    if start_room != next_room {
+                        day_vec.push(BasicPathway {
+                            start: start_room,
+                            end: next_room,
+                            start_spot: Location::Classroom(class.clone()),
+                            end_spot: Location::Classroom(next_class.clone()),
+                        });
+                    }
+                }
+                fn get_next_class(clean_classes: Vec<Option<Class>>, num: usize) -> Class {
+                    let mut incre = 1;
+                    if clean_classes[num + incre] == None {
+                        incre = 2
+                    };
+
+                    match clean_classes[num + incre].clone() {
+                        Some(res) => return res,
+                        None => panic!("with incre {incre} and \n{:#?}", clean_classes),
+                    }
                 }
             }
         }
+
+        let exit_id = match exit {
+            EnterExit::WestMain => 988,
+            EnterExit::EastMain => 987,
+            EnterExit::D13 => 691,
+            EnterExit::D6 => 692,
+        };
+        if clean_classes.last().unwrap().clone() == None {
+            //println!("{clean_classes:#?}");
+        }
+
+        let final_class_id = name_to_id(
+            &clean_classes
+                .last()
+                .unwrap()
+                .clone()
+                .unwrap()
+                .room
+                .trim()
+                .to_lowercase(),
+            &nodes,
+        )
+        .unwrap();
+
+        day_vec.push(BasicPathway {
+            start: final_class_id,
+            end: exit_id,
+            start_spot: Location::Classroom(clean_classes.last().unwrap().clone().unwrap().clone()),
+            end_spot: Location::Exit,
+        });
         master_vec.push(day_vec);
     }
+    //println!("skibiid \n{:#?}", master_vec[1]);
 
     let mut daily_node = DailyNode {
         anode: None,
         bnode: None,
-        inode: None,
         cnode: None,
         dnode: None,
     };
 
     for (day_num, day) in master_vec.into_iter().enumerate() {
-        let mut day_vec = Vec::new();
-
-        if let Some(first_class) = day.first().and_then(|fc| fc.as_ref()) {
-
-            let start_path = {
-                let start_room_id = match entrance {
-                    EnterExit::WestMain => 990,
-                    EnterExit::EastMain => 989,
-                    EnterExit::D13 => 692,
-                    EnterExit::D6 => 693,
-                };
-                pathfinding::time_path(start_room_id, first_class.0[0], &mut nodes)
-            };
-            day_vec.push((start_path, (None, first_class.1 .0.clone())));
-        }
-        let mut skip = false;
-        for (iter, vecpath) in day.iter().enumerate() {
-            if vecpath.is_none() && checked {
-                if let Some(prev_class) = day.get(iter.wrapping_sub(1)).and_then(|p| p.as_ref()) {
-                    if let Some(next_class) = day.get(iter + 1).and_then(|n| n.as_ref()) {
-                        let to_lex = pathfinding::time_path(prev_class.0[1], 354, &mut nodes);
-                        let from_lex = pathfinding::time_path(354, next_class.0[1], &mut nodes);
-                        day_vec.push((to_lex, (prev_class.1 .1.clone(), None)));
-                        day_vec.push((from_lex, (None, next_class.1 .1.clone())));
-                        skip = true;
+        let mut day_vec: Vec<(Vec<usize>, (Option<Class>, Option<Class>))> = Vec::new();
+        for basicpath in day {
+            let path = pathfinding::time_path(basicpath.start, basicpath.end, &mut nodes);
+            match basicpath.start_spot {
+                Location::Classroom(start_class) => match basicpath.end_spot {
+                    Location::Classroom(end_class) => {
+                        day_vec.push((path, (Some(start_class), Some(end_class))))
                     }
-                }
-            } else if let Some(ref full_class) = vecpath {
-                if skip {skip = false; continue;}
-                let shortest_path =
-                    pathfinding::time_path(full_class.0[0], full_class.0[1], &mut nodes);
-                day_vec.push((shortest_path, full_class.1.clone()));
+                    _ => day_vec.push((path, (Some(start_class), None))),
+                },
+                _ => match basicpath.end_spot {
+                    Location::Classroom(end_class) => day_vec.push((path, (None, Some(end_class)))),
+                    _ => day_vec.push((path, (None, None))),
+                },
             }
-        }
-
-        if let Some(last_class) = day.last().and_then(|lc| lc.as_ref()) {
-            let end_path = {
-                let end_room_id = match exit {
-                    EnterExit::WestMain => 990,
-                    EnterExit::EastMain => 989,
-                    EnterExit::D13 => 692,
-                    EnterExit::D6 => 693,
-                };
-                pathfinding::time_path(last_class.0[1], end_room_id, &mut nodes)
-            };
-            day_vec.push((end_path, (last_class.1 .1.clone(), None)));
         }
 
         match day_num {
             0 => daily_node.anode = Some(day_vec),
             1 => daily_node.bnode = Some(day_vec),
-            2 => daily_node.inode = Some(day_vec),
-            3 => daily_node.cnode = Some(day_vec),
-            4 => daily_node.dnode = Some(day_vec),
+
+            2 => daily_node.cnode = Some(day_vec),
+            3 => daily_node.dnode = Some(day_vec),
             _ => return Err(format!("Unexpected day_num: {day_num}")),
         }
     }
 
     Ok((daily_node, nodes))
-}
-
-fn find_next_class<'a>(day: &'a [&'a Class; 8], start_index: usize) -> Option<&'a Class> {
-    for offset in 1..8 - start_index {
-        if let Some(next_class) = day.get(start_index + offset) {
-            if !next_class.room.trim().is_empty() {
-                return Some(next_class);
-            }
-        }
-    }
-    None
 }
