@@ -1,3 +1,6 @@
 assets = ["assets/*"]
 name = "class-find"
-
+[build]
+assets = [
+  "assets/*"
+]

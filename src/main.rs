@@ -3,7 +3,7 @@ use actix_web::web::{self, ServiceConfig};
 use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 use shuttle_actix_web::ShuttleActixWeb;
-use std::path::Path;
+use std::{f32::INFINITY, path::Path};
 mod path;
 mod webpages;
 use webpages::{
@@ -108,6 +108,35 @@ fn name_to_id(name: &str, nodes: &[Node]) -> Option<usize> {
         .iter()
         .find(|node| node.name.to_lowercase() == name.to_lowercase())
         .map(|node| node.id)
+}
+fn name_to_ids<'a>(name: &str, nodes: &'a [Node]) -> Vec<&'a Node> {
+    let name_lower = name.to_lowercase();
+    nodes
+        .iter()
+        .filter(|node| node.name.to_lowercase() == name_lower)
+        .collect()
+}
+
+fn closest_pair_between(
+    start_name: &str,
+    end_name: &str,
+    nodes: &[Node],
+) -> Option<(usize, usize)> {
+    let starts = name_to_ids(start_name, nodes);
+    let ends = name_to_ids(end_name, nodes);
+
+    starts
+        .iter()
+        .flat_map(|&s| {
+            ends.iter().map(move |&e| {
+                let dx = s.x - e.x;
+                let dy = s.y - e.y;
+                let dist_sq = dx * dx + dy * dy;
+                (dist_sq, s.id, e.id)
+            })
+        })
+        .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
+        .map(|(_, sid, eid)| (sid, eid))
 }
 
 #[shuttle_runtime::main]

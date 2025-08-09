@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         console.log(val);
         console.log("Trying to get full, here's the deets: ", pathDetails)
-        const fullPath = pathDetails.path.map((point, index) => `${point.name}`).join(' -> ');
+        const fullPath = pathDetails.path.map((point, index) => `${point.name}`).join(' → ');
         if (pathDetails.info !== null) {
             const { days, end, long_name, mods, room, semester, short_name, start, teacher } = pathDetails.info[val];
             const daysFormatted = days.join(", ");
@@ -169,28 +169,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const { mouseX, mouseY } = getMousePosition(e, svg);
         let tooltipVisible = false;
 
+        labels.forEach(label => {
 
-        arrows.forEach(arrow => {
-            if (isMouseOverArrow(mouseX, mouseY, arrow)) {
-
+            if (
+                mouseX >= label.x &&
+                mouseX <= label.x + label.width &&
+                mouseY >= label.y &&
+                mouseY <= label.y + label.height
+            ) {
                 tooltip.style.display = 'block';
                 tooltip.style.left = `${e.clientX + window.scrollX + 5}px`;
                 tooltip.style.top = `${e.clientY + window.scrollY + 5}px`;
 
-                let tooltipContent = `<strong>${arrow.name}</strong><br/>`;
-
-                if (arrow.type === 'start') {
-                    tooltipContent += `<em>Start of Route</em><br/>`;
-                } else if (arrow.type === 'end') {
-                    tooltipContent += `<em>End of Route</em><br/>`;
+                let tooltipContent = `<strong>${label.name}</strong><br/>`;
+                tooltipContent += getFullPathDescription(label.pathDetails, false);
+                let black_if_yellow = "";
+                if (label.color === "yellow") {
+                    black_if_yellow = "color: black;"
                 }
-                if (arrow.type === 'start') {
-                    tooltipContent += getFullPathDescription(arrow.pathDetails, true);
-                }
-                if (arrow.type === 'end') {
-                    tooltipContent += getFullPathDescription(arrow.pathDetails, false);
-                }
-                tooltip.innerHTML = `<div style="border: 1px solid ${arrow.color}; background-color: ${arrow.color};">${tooltipContent}</div>`;
+                tooltip.innerHTML = `<div style="border: 1px solid ${label.color}; background-color: ${label.color}; ${black_if_yellow}">${tooltipContent}</div>`;
                 tooltipVisible = true;
             }
         });
@@ -199,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tooltip.style.display = 'none';
         }
     }
+
 
     adjustSvgSize();
     window.addEventListener('resize', () => {
@@ -321,6 +319,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     }
                 });
+                
+                const scheduleBox = document.getElementById('scheduleBox');
+                scheduleBox.innerHTML = ''; 
+
+                curday.forEach((path, curnum) => {
+                    const startName = path["nodes"][0].name;
+                    const endName = path["nodes"][path["nodes"].length - 1].name;
+                    const line = document.createElement('div');
+                    line.className = 'schedule-line';
+
+                    const pill = document.createElement('div');
+                    pill.className = 'schedule-pill';
+                    pill.style.backgroundColor = colorMap[curnum] || 'white';
+
+                    const text = document.createElement('span');
+                    text.textContent = `${startName} → ${endName}`;
+
+                    line.appendChild(pill);
+                    line.appendChild(text);
+                    scheduleBox.appendChild(line);
+                });
 
 
                 adjustSvgSize();
@@ -335,6 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const arrows = [];
+    const labels = [];
     const tooltip = document.getElementById('tooltip');
 
     svg.addEventListener('mousemove', handleMouseMove);
@@ -354,6 +374,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function redrawArrows() {
+        labels.length = 0;
+
         const container = document.getElementById('hallwayImage');
         if (!container) return console.error("hallwayImage container not found!");
 
@@ -369,10 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const radius = 12 / currentScale;
         const shortenEnd = 6 / currentScale;
-        console.log(arrows);
+
         for (let i = 0; i < arrows.length; i++) {
-
-
             const cur = arrows[i];
 
             const x = cur.x1Pct * width / offset;
@@ -384,12 +404,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cur.isStairTransition) {
                 drawCircle(x, y, cur.color);
                 drawCircle(nextX, nextY, cur.color);
+
                 function makeText(x, y, text) {
                     const SVG_NS = "http://www.w3.org/2000/svg";
 
                     const rect = document.createElementNS(SVG_NS, "rect");
                     rect.setAttribute("x", x + 5);
-                    rect.setAttribute("y", y - 10); 
+                    rect.setAttribute("y", y - 10);
                     rect.setAttribute("width", 120);
                     rect.setAttribute("height", 30);
                     rect.setAttribute("fill", cur.color);
@@ -397,10 +418,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     svg.appendChild(rect);
 
-
                     const label = document.createElementNS(SVG_NS, "text");
                     label.setAttribute("font-weight", "bold");
-
                     label.setAttribute("x", x + 10);
                     label.setAttribute("y", y + 5);
                     label.setAttribute("fill", "black");
@@ -414,7 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     makeText(x, y, "Take stairs up");
                 }
 
-               
                 if (path) {
                     path.setAttribute("d", d);
                     svg.appendChild(path);
@@ -422,16 +440,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     d = '';
                     currentColor = null;
                 }
-
                 continue;
             }
             else {
-                
                 if (cur.color !== currentColor) {
                     if (path) {
                         path.setAttribute("d", d);
                         svg.appendChild(path);
-
                     }
 
                     path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -445,7 +460,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     d = `M ${x} ${y}`;
                     continue;
                 }
-
 
                 if (i > 0 && arrows[i - 1].color === cur.color) {
                     const prev = arrows[i - 1];
@@ -464,19 +478,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     const ux2 = dx2 / len2;
                     const uy2 = dy2 / len2;
 
-
                     const corner1X = x - ux1 * radius;
                     const corner1Y = y - uy1 * radius;
 
                     const corner2X = x + ux2 * radius;
                     const corner2Y = y + uy2 * radius;
 
-
                     d += ` L ${corner1X} ${corner1Y}`;
-
                     d += ` Q ${x} ${y} ${corner2X} ${corner2Y}`;
                 }
-
 
                 const dx = nextX - x;
                 const dy = nextY - y;
@@ -492,10 +502,68 @@ document.addEventListener('DOMContentLoaded', () => {
                     d += `L ${trimmedX} ${trimmedY}`;
                 }
 
-
                 drawArrowhead(x, y, nextX, nextY, cur.color, 1.3 / currentScale);
-            }
 
+                if (cur.type === 'end') {
+                    const fontSize = 12;
+                    const paddingX = 8;
+                    const paddingY = 4;
+                    const text = createSvgElement("text", {
+                        x: 0,
+                        y: 0,
+                        "font-size": fontSize,
+                        "font-weight": "bold",
+                        fill: "white"
+                    });
+                    text.textContent = cur.name;
+                    svg.appendChild(text);
+
+                    const bbox = text.getBBox();
+                    svg.removeChild(text);
+                    const rectWidth = bbox.width + paddingX * 2;
+                    const rectHeight = bbox.height + paddingY * 2;
+
+                    const rectX = nextX + 5;
+                    const rectY = nextY - rectHeight / 2;
+
+                    const rect = createSvgElement("rect", {
+                        x: rectX,
+                        y: rectY,
+                        width: rectWidth,
+                        height: rectHeight,
+                        fill: cur.color,
+                        stroke: "black",
+                        "stroke-width": 1,
+                        rx: 4,
+                        ry: 4
+                    });
+                    svg.appendChild(rect);
+                    let text_color = "white";
+                    if (cur.color === "yellow") {
+                        text_color = "black";
+                    }
+                    const finalText = createSvgElement("text", {
+                        x: rectX + rectWidth / 2,
+                        y: rectY + rectHeight / 2 + bbox.height / 3,
+                        "text-anchor": "middle",
+                        "font-size": fontSize,
+                        "font-weight": "bold",
+                        fill: text_color,s
+                    });
+                    finalText.textContent = cur.name;
+                    svg.appendChild(finalText);
+                    labels.push({
+                        x: rectX,
+                        y: rectY,
+                        width: rectWidth,
+                        height: rectHeight,
+                        color: cur.color,
+                        name: cur.name,
+                        pathDetails: cur.pathDetails
+                    });
+
+                }
+            }
         }
 
         if (path) {
@@ -503,6 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
             svg.appendChild(path);
         }
     }
+
 
 
     function drawArrowhead(x1, y1, x2, y2, color, scale) {
