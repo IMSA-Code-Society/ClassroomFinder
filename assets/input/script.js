@@ -548,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         "text-anchor": "middle",
                         "font-size": fontSize,
                         "font-weight": "bold",
-                        fill: text_color,s
+                        fill: text_color,
                     });
                     finalText.textContent = cur.name;
                     svg.appendChild(finalText);
