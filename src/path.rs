@@ -12,7 +12,7 @@ Exp    Trm    Crs-Sec    Course Name    Teacher    Room    Enroll    Leave
 use lazy_static::lazy_static;
 use regex::Regex;
 
-use crate::{name_to_id, pathfinding, Node};
+use crate::{closest_pair_between, name_to_id, pathfinding, Node};
 struct ScheduleInfo {
     mods: Vec<String>,
     semester: Vec<String>,
@@ -367,9 +367,7 @@ pub fn node_find_func(
                 clean_classes.push(None)
             }
         }
-        if count == 2 {
-            println!("{:#?}", clean_classes);
-        }
+        if count == 2 { /*println!("{:#?}", clean_classes);*/ }
 
         let mut day_vec: Vec<BasicPathway> = Vec::new();
         for (num, rawclass) in clean_classes.iter().enumerate() {
@@ -454,18 +452,17 @@ pub fn node_find_func(
                     //normal
 
                     if clean_classes[num + 1] != None {
-                        let start_room = name_to_id(&class.room.trim().to_lowercase(), &nodes)
-                            .ok_or(format!("The room '{}' was not recognized", class.room))?;
                         let next_class: &Class = &get_next_class(clean_classes.clone(), num);
 
-                        let next_room = name_to_id(&next_class.room.trim().to_lowercase(), &nodes)
-                            .ok_or(format!("The room '{}' was not recognized", next_class.room))?;
-                        if count == 3 {
-                            println!(
-                                "Making connection between rooms {:#?} and {:#?}",
-                                class, next_class
-                            );
-                        }
+                        let (start_room, next_room) = closest_pair_between(
+                            &class.room.trim().to_lowercase(),
+                            &next_class.room.trim().to_lowercase(),
+                            &nodes,
+                        )
+                        .ok_or(format!(
+                            "Could not match rooms '{}' or '{}'",
+                            class.room, next_class.room
+                        ))?;
 
                         if start_room != next_room {
                             day_vec.push(BasicPathway {
@@ -477,19 +474,17 @@ pub fn node_find_func(
                         }
                     }
                 } else {
-                    let start_room = name_to_id(&class.room.trim().to_lowercase(), &nodes)
-                        .ok_or(format!("The room '{}' was not recognized", class.room))?;
-
                     let next_class: &Class = &get_next_class(clean_classes.clone(), num);
 
-                    let next_room = name_to_id(&next_class.room.trim().to_lowercase(), &nodes)
-                        .ok_or(format!("The room '{}' was not recognized", next_class.room))?;
-                    if count == 3 {
-                        println!(
-                            "Making connection between rooms {:#?} and {:#?}",
-                            class, next_class
-                        );
-                    }
+                    let (start_room, next_room) = closest_pair_between(
+                        &class.room.trim().to_lowercase(),
+                        &next_class.room.trim().to_lowercase(),
+                        &nodes,
+                    )
+                    .ok_or(format!(
+                        "Could not match rooms '{}' or '{}'",
+                        class.room, next_class.room
+                    ))?;
 
                     if start_room != next_room {
                         day_vec.push(BasicPathway {
