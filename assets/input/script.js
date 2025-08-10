@@ -142,8 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         console.log(val);
         console.log("Trying to get full, here's the deets: ", pathDetails)
-        const fullPath = pathDetails.path.map((point, index) => `${point.name}`).join(' → ');
-        if (pathDetails.info !== null) {
+
+        const fullPath = pathDetails.path[0].name + ' → ' + pathDetails.path[pathDetails.path.length -1].name;
+        if (pathDetails.info[val] !== null) {
             const { days, end, long_name, mods, room, semester, short_name, start, teacher } = pathDetails.info[val];
             const daysFormatted = days.join(", ");
             const modsFormatted = mods.join(", ");
@@ -187,7 +188,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (label.color === "yellow") {
                     black_if_yellow = "color: black;"
                 }
-                tooltip.innerHTML = `<div style="border: 1px solid ${label.color}; background-color: ${label.color}; ${black_if_yellow}">${tooltipContent}</div>`;
+                
+                tooltip.innerHTML = `<div style="${black_if_yellow}">${tooltipContent}</div>`;
+                
+                tooltip.style["border"] = "1px solid " + label.color;
+                tooltip.style["backgroundColor"] = label.color;
+                tooltip.style["borderRadius"] = "10px";
+                
                 tooltipVisible = true;
             }
         });
