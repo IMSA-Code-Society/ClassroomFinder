@@ -180,7 +180,7 @@ button:active {
   height: auto;
 }
 
-
+input,
 select {
   background-color: #9DBBAE;
   border-width: 0;
@@ -188,13 +188,6 @@ select {
   border-radius: 15px;
 }
 
-
-
-select {
-  background-color: #9DBBAE;
-  border-width: 0;
-  color: #1E1E24;
-}
 
 svg {
   position: absolute;
@@ -221,7 +214,8 @@ textarea {
   float: left;
 }
 
-#submit {
+#submit,
+.path_button {
   margin-left: 55px;
   background-color: #2E2E34;
   border-width: 0;
@@ -263,3 +257,8 @@ textarea {
   border: 1px solid #1E1E24;
 }
 
+.input_controls {
+  justify-content: center;
+  gap: 20px;
+  margin-top: 10px;
+}

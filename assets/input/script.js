@@ -5,15 +5,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('bottom-part').hidden = false;
     const colorMap = {
         0: "red",
-        1: "orange",
+        1: "darkorange",
         2: "yellow",
-        3: "green",
-        4: "blue",
-        5: "purple",
-        6: "pink",
-        7: "grey",
-        8: "brown",
-        9: "black",
+        3: "chartreuse",
+        4: "green",
+        5: "cyan",
+        6: "blue",
+        7: "purple",
+        8: "pink",
+        9: "brown"
     };
 
     const scaleFactor = 1.2;
