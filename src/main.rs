@@ -3,7 +3,7 @@ use actix_web::web::{self, ServiceConfig};
 use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 use shuttle_actix_web::ShuttleActixWeb;
-use std::{f32::INFINITY, path::Path};
+use std::path::Path;
 mod path;
 mod webpages;
 use webpages::{
@@ -25,12 +25,11 @@ struct Node {
 
 mod file_utils {
     use super::{from_reader, Node, Path};
-    use serde::de::Error;
     use std::fs::File;
 
-    pub fn read_nodes_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Node>, serde_json::Error> {
-        let file = File::open(path).map_err(|e| serde_json::Error::custom(e.to_string()))?;
-        from_reader(file)
+    pub fn read_nodes_from_file<P: AsRef<Path>>(path: P) -> Result<Vec<Node>, String> {
+        let file = File::open(path).map_err(|e| e.to_string())?;
+        Ok(from_reader(file).map_err(|e| e.to_string())?)
     }
 }
 
@@ -103,11 +102,11 @@ fn reset_nodes(nodes: &mut [Node]) {
     }
 }
 
-fn name_to_id(name: &str, nodes: &[Node]) -> Option<usize> {
+fn name_to_id(name: &str, nodes: &[Node]) -> Result<usize, String> {
     nodes
         .iter()
         .find(|node| node.name.to_lowercase() == name.to_lowercase())
-        .map(|node| node.id)
+        .map(|node| node.id).ok_or(format!("Could not identify a node for string '{name}'").to_string())
 }
 fn name_to_ids<'a>(name: &str, nodes: &'a [Node]) -> Vec<&'a Node> {
     let name_lower = name.to_lowercase();

@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then((json) => {
                 console.log("Here is the json: ", json);
                 if (json.status == 1) {
-                    document.getElementById('error_message').innerHTML = `There was an error: ${json.error_message}`;
+                    document.getElementById('error_message').innerHTML = `There was an error: ${json.error_message}. Hint: checking the <a id="error_message_link" href="/about">About Page</a> might help you`;
                     return;
                 }
 

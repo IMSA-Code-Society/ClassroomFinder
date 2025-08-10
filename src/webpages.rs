@@ -5,9 +5,6 @@ use crate::{
 
 use actix_multipart::Multipart;
 use actix_web::{web, HttpResponse, Responder, Result};
-use futures::StreamExt as _;
-use futures::TryStreamExt;
-use tokio::io::AsyncWriteExt;
 
 pub async fn home_page() -> impl Responder {
     serve_html("assets/path/home.html")
@@ -25,27 +22,33 @@ pub async fn about() -> impl Responder {
 }
 
 pub async fn image() -> impl Responder {
-    HttpResponse::Ok()
-        .content_type("image/jpg")
-        .body(std::fs::read("assets/imsa_hallway.jpg").unwrap())
+    match std::fs::read("assets/imsa_hallway.jpg") {
+        Ok(file) => HttpResponse::Ok().content_type("image/jpg").body(file),
+        Err(err) => HttpResponse::from_error(err),
+    }
 }
 
 pub async fn css_handler() -> impl Responder {
-    let css: String = tokio::fs::read_to_string("assets/home.css").await.unwrap();
-    HttpResponse::Ok().content_type("text/css").body(css)
+    match tokio::fs::read_to_string("assets/home.css").await {
+        Ok(file) => HttpResponse::Ok().content_type("text/css").body(file),
+        Err(err) => HttpResponse::from_error(err),
+    }
 }
 
 fn serve_html(path: &str) -> impl Responder {
-    HttpResponse::Ok()
+    match std::fs::read(path) {
+        Ok(file) => HttpResponse::Ok()
         .content_type("text/html")
-        .body(std::fs::read_to_string(path).unwrap())
+        .body(file),
+        Err(err) => HttpResponse::from_error(err),
+    }
 }
 
-pub async fn save(mut payload: Multipart) -> Result<HttpResponse> {
-    
-    
+pub async fn save(mut _payload: Multipart) -> Result<HttpResponse> {
+    // this function should be commented out when used in production to stop
+    // random users from writing over the save file.
+    /*
     while let Ok(Some(mut field)) = payload.try_next().await {
-        
         if let Some("file") = field.name() {
             let data: web::Bytes = field.next().await.unwrap().unwrap();
             let mut file: tokio::fs::File =
@@ -53,36 +56,44 @@ pub async fn save(mut payload: Multipart) -> Result<HttpResponse> {
             file.write_all(&data).await.unwrap();
         }
     }
+     */
     Ok(HttpResponse::Ok().json(serde_json::json!({"status": 0})))
+}
+fn check_request(request: serde_json::Value) -> Result<(usize, usize, Vec<Node>), String> {
+    let start = request["start-room"]
+        .as_str()
+        .ok_or("No key for 'start-room' was found")?
+        .to_string();
+    let end = request["destination"]
+        .as_str()
+        .ok_or("No key for 'destination' was found")?
+        .to_string();
+    let nodes: Vec<Node> = file_utils::read_nodes_from_file("assets/nodes.json")?;
+    let start_room: usize = name_to_id(&start, &nodes)?;
+    let destination: usize = name_to_id(&end, &nodes)?;
+    return Ok((start_room, destination, nodes));
 }
 
 pub async fn directions(web::Json(request): web::Json<serde_json::Value>) -> impl Responder {
-    let mut nodes: Vec<Node> =
-        file_utils::read_nodes_from_file("assets/nodes.json").expect("Failed to read nodes");
+    let (start_room, destination, mut nodes) = match check_request(request) {
+        Ok((start_room, end_room, nodes)) => (start_room, end_room, nodes),
+        Err(err) => {
+            return HttpResponse::BadRequest()
+                .json(serde_json::json!({"status": 1, "error_message": format!("{err}")}))
+        }
+    };
 
     reset_nodes(&mut nodes);
 
-    let start_room: usize =
-        name_to_id(request["start-room"].as_str().unwrap(), &nodes).unwrap_or(usize::MAX);
-    let destination: usize =
-        name_to_id(request["destination"].as_str().unwrap(), &nodes).unwrap_or(usize::MAX);
-
-    if start_room == usize::MAX || destination == usize::MAX {
-        println!("Error: Invalid start or destination room");
-        return HttpResponse::BadRequest().json(serde_json::json!({"status": 1}));
-    }
-
     let shortest_path: Vec<usize> = pathfinding::time_path(start_room, destination, &mut nodes);
     let path_json: Vec<serde_json::Value> = build_direct_json(&shortest_path, &nodes);
-
 
     HttpResponse::Ok().json(serde_json::json!({ "path": path_json }))
 }
 
 fn build_path_json(path: &FullPathway, nodes: &[Node]) -> serde_json::Value {
-
-    
-    let nodes: serde_json::Value = path.0
+    let nodes: serde_json::Value = path
+        .0
         .iter()
         .map(|&index| {
             serde_json::json!({
@@ -98,7 +109,6 @@ fn build_path_json(path: &FullPathway, nodes: &[Node]) -> serde_json::Value {
         "nodes": nodes,
     });
     real_json
-    
 }
 fn build_direct_json(path: &[usize], nodes: &[Node]) -> Vec<serde_json::Value> {
     path.iter()
@@ -114,22 +124,48 @@ fn build_direct_json(path: &[usize], nodes: &[Node]) -> Vec<serde_json::Value> {
 }
 
 pub async fn schedule_handle(web::Json(request): web::Json<serde_json::Value>) -> impl Responder {
-    let user_input: &str = request["Schedule Input"].as_str().unwrap();
-    let enter: EnterExit = match request["Enter"].as_str().unwrap() {
-        "west" => EnterExit::WestMain,
-        "east" => EnterExit::EastMain, 
-        "d13" => EnterExit::D13,
-        "d6" => EnterExit::D6,
-        _ => panic!("Malformed json"),
+    const MEANIE: &str = "You seem to have provided an invalid string input for schedule input... you better not be trying to hack me >:(";
+    let user_input: &str = match request["Schedule Input"].as_str().ok_or(MEANIE) {
+        Ok(val) => val,
+        Err(err) => {
+            return HttpResponse::BadRequest()
+                .json(serde_json::json!({"status": 1, "error_message": err}))
+        }
     };
-    let exit: EnterExit = match request["Exit"].as_str().unwrap() {
-        "west" => EnterExit::WestMain,
-        "east" => EnterExit::EastMain,
-        "d13" => EnterExit::D13,
-        "d6" => EnterExit::D6,
-        _ => panic!("Malformed json"),
+    let enter: EnterExit = match request["Enter"].as_str().ok_or("No 'Enter' JSON key found") {
+        Ok("west") => EnterExit::WestMain,
+        Ok("east") => EnterExit::EastMain,
+        Ok("d13") => EnterExit::D13,
+        Ok("d6") => EnterExit::D6,
+        Ok(_) => return HttpResponse::BadRequest()
+                .json(serde_json::json!({"status": 1, "error_message": format!("Invalid entrance string. {}", MEANIE)})),
+        Err(err) => {
+            return HttpResponse::BadRequest()
+                .json(serde_json::json!({"status": 1, "error_message": format!("{err} {}", MEANIE)}))
+        }
     };
-    let checked: bool = request["LexMidday"].as_bool().unwrap();
+    let exit: EnterExit = match request["Exit"].as_str().ok_or("No 'Exit' JSON key found.") {
+        Ok("west") => EnterExit::WestMain,
+        Ok("east") => EnterExit::EastMain,
+        Ok("d13") => EnterExit::D13,
+        Ok("d6") => EnterExit::D6,
+        Ok(_) => return HttpResponse::BadRequest()
+                .json(serde_json::json!({"status": 1, "error_message": format!("Invalid exit string. {}", MEANIE)})),
+        Err(err) => {
+            return HttpResponse::BadRequest()
+                .json(serde_json::json!({"status": 1, "error_message": format!("{err} {}", MEANIE)}))
+        }
+    };
+    let checked: bool = match request["LexMidday"]
+        .as_bool()
+        .ok_or("No key 'LexMidday' found, or incorrect type (bool).")
+    {
+        Ok(value) => value,
+        Err(err) => {
+            return HttpResponse::BadRequest()
+                .json(serde_json::json!({"status": 1, "error_message": format!("{err} {MEANIE}")}))
+        }
+    };
     let (sem1, sem2) = match get_schedule(user_input) {
         (Ok(sem1), Ok(sem2)) => (sem1, sem2),
         (Ok(_), Err(err)) | (Err(err), Ok(_)) => {
@@ -180,7 +216,7 @@ pub async fn schedule_handle(web::Json(request): web::Json<serde_json::Value>) -
             }
         };
     let json: serde_json::Value = build_schedule_json(path_master_vec_1, path_master_vec_2, &nodes);
-    
+
     HttpResponse::Ok().json(json)
 }
 
@@ -189,7 +225,6 @@ fn build_schedule_json(
     path_master_vec_2: DailyNode,
     nodes: &[Node],
 ) -> serde_json::Value {
-    
     let day_vecs1: [Option<Vec<FullPathway>>; 4] = [
         path_master_vec_1.anode,
         path_master_vec_1.bnode,

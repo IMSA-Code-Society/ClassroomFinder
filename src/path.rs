@@ -205,11 +205,11 @@ fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
             _ if day.contains('-') => {
                 let (start, end) = day
                     .split_once('-')
-                    .ok_or_else(|| format!("Invalid range: {day}"))?;
+                    .ok_or_else(|| format!("Invalid range: '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again."))?;
                 let start = start
                     .chars()
                     .next()
-                    .ok_or_else(|| format!("Invalid start day: {day}"))?;
+                    .ok_or_else(|| format!("Invalid start day: '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again."))?;
                 let end = end.chars().next().unwrap_or(start);
                 days.extend((start..=end).filter_map(|d| match d {
                     'A' => Some(Day::A),
@@ -220,7 +220,7 @@ fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
                     _ => None,
                 }));
             }
-            _ => return Err(format!("Unknown day pattern: {day}")),
+            _ => return Err(format!("Unknown day pattern '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again.")),
         }
     }
     Ok(days)
@@ -257,7 +257,7 @@ fn sort_by_day(schedule_info: &ScheduleInfo) -> Result<Vec<Class>, String> {
             let parsed_mods_days = if CURREG_REGEX.is_match(mods_days) {
                 MODS_DAY_REGEX.find_iter(mods_days)
                     .map(|mat| {
-                        let (mod_str, day_str) = mat.as_str().split_once('(').unwrap();
+                        let (mod_str, day_str) = mat.as_str().split_once('(').ok_or("Could not split by delimiter '(' ")?;
                         Ok((parse_day(day_str.trim_end_matches(')'))?, parse_mods(mod_str)?))
                     })
                     .collect::<Result<Vec<_>, String>>()?
@@ -381,31 +381,13 @@ pub fn node_find_func(
                     rawclass
                 );
             }
-
-            if *rawclass == None {
-                let start_class;
-                match clean_classes[num.saturating_sub(1)].clone() {
-                    Some(thing) => {
-                        start_class = thing;
-                        let start_id =
-                            name_to_id(&start_class.room.trim().to_lowercase(), &nodes).unwrap();
-                        day_vec.push(BasicPathway {
-                            start: start_id,
-                            end: 354,
-                            start_spot: Location::Classroom(start_class),
-                            end_spot: Location::Lexington,
-                        });
-                        let end_class = clean_classes[num + 1].clone().unwrap();
-                        let end_id =
-                            name_to_id(&end_class.room.trim().to_lowercase(), &nodes).unwrap();
-                        day_vec.push(BasicPathway {
-                            start: 354,
-                            end: end_id,
-                            start_spot: Location::Lexington,
-                            end_spot: Location::Classroom(end_class),
-                        });
+            match rawclass {
+                Some(class) => {
+                    if class.mods.contains(&4) && checked {
+                        continue;
                     }
-                    None => {
+                    if num == 0 {
+                        let first_class = name_to_id(&class.room.trim().to_lowercase(), &nodes)?;
                         let entrance_id = match entrance {
                             EnterExit::WestMain => 988,
                             EnterExit::EastMain => 987,
@@ -414,44 +396,35 @@ pub fn node_find_func(
                         };
                         day_vec.push(BasicPathway {
                             start: entrance_id,
-                            end: 354,
+                            end: first_class,
                             start_spot: Location::Entrance,
-                            end_spot: Location::Lexington,
+                            end_spot: Location::Classroom(class.clone()),
                         });
-                        let end_class = clean_classes[num + 1].clone().unwrap();
-                        let end_id =
-                            name_to_id(&end_class.room.trim().to_lowercase(), &nodes).unwrap();
-                        day_vec.push(BasicPathway {
-                            start: 354,
-                            end: end_id,
-                            start_spot: Location::Lexington,
-                            end_spot: Location::Classroom(end_class),
-                        });
-                    }
-                }
-            } else {
-                let class = rawclass.clone().unwrap();
-                if class.mods.contains(&4) && checked {
-                    continue;
-                }
-                if num == 0 {
-                    let first_class = name_to_id(&class.room.trim().to_lowercase(), &nodes)
-                        .ok_or(format!("The room '{}' was not recognized", class.room))?;
-                    let entrance_id = match entrance {
-                        EnterExit::WestMain => 988,
-                        EnterExit::EastMain => 987,
-                        EnterExit::D13 => 691,
-                        EnterExit::D6 => 692,
-                    };
-                    day_vec.push(BasicPathway {
-                        start: entrance_id,
-                        end: first_class,
-                        start_spot: Location::Entrance,
-                        end_spot: Location::Classroom(class.clone()),
-                    });
-                    //normal
+                        //normal
 
-                    if clean_classes[num + 1] != None {
+                        if clean_classes[num + 1] != None {
+                            let next_class: &Class = &get_next_class(clean_classes.clone(), num);
+
+                            let (start_room, next_room) = closest_pair_between(
+                                &class.room.trim().to_lowercase(),
+                                &next_class.room.trim().to_lowercase(),
+                                &nodes,
+                            )
+                            .ok_or(format!(
+                                "Could not match rooms '{}' or '{}'",
+                                class.room, next_class.room
+                            ))?;
+
+                            if start_room != next_room {
+                                day_vec.push(BasicPathway {
+                                    start: start_room,
+                                    end: next_room,
+                                    start_spot: Location::Classroom(class.clone()),
+                                    end_spot: Location::Classroom(next_class.clone()),
+                                });
+                            }
+                        }
+                    } else {
                         let next_class: &Class = &get_next_class(clean_classes.clone(), num);
 
                         let (start_room, next_room) = closest_pair_between(
@@ -473,37 +446,62 @@ pub fn node_find_func(
                             });
                         }
                     }
-                } else {
-                    let next_class: &Class = &get_next_class(clean_classes.clone(), num);
+                    fn get_next_class(clean_classes: Vec<Option<Class>>, num: usize) -> Class {
+                        let mut incre = 1;
+                        if clean_classes[num + incre] == None {
+                            incre = 2
+                        };
 
-                    let (start_room, next_room) = closest_pair_between(
-                        &class.room.trim().to_lowercase(),
-                        &next_class.room.trim().to_lowercase(),
-                        &nodes,
-                    )
-                    .ok_or(format!(
-                        "Could not match rooms '{}' or '{}'",
-                        class.room, next_class.room
-                    ))?;
-
-                    if start_room != next_room {
-                        day_vec.push(BasicPathway {
-                            start: start_room,
-                            end: next_room,
-                            start_spot: Location::Classroom(class.clone()),
-                            end_spot: Location::Classroom(next_class.clone()),
-                        });
+                        match clean_classes[num + incre].clone() {
+                            Some(res) => return res,
+                            None => panic!("with incre {incre} and \n{:#?}", clean_classes),
+                        }
                     }
                 }
-                fn get_next_class(clean_classes: Vec<Option<Class>>, num: usize) -> Class {
-                    let mut incre = 1;
-                    if clean_classes[num + incre] == None {
-                        incre = 2
-                    };
-
-                    match clean_classes[num + incre].clone() {
-                        Some(res) => return res,
-                        None => panic!("with incre {incre} and \n{:#?}", clean_classes),
+                None => {
+                    let start_class;
+                    match clean_classes[num.saturating_sub(1)].clone() {
+                        Some(thing) => {
+                            start_class = thing;
+                            let start_id =
+                                name_to_id(&start_class.room.trim().to_lowercase(), &nodes)?;
+                            day_vec.push(BasicPathway {
+                                start: start_id,
+                                end: 354,
+                                start_spot: Location::Classroom(start_class),
+                                end_spot: Location::Lexington,
+                            });
+                            let end_class = clean_classes[num + 1].clone().ok_or("For some reason, clean_classes has two Nones. This should be impossible.")?;
+                            let end_id = name_to_id(&end_class.room.trim().to_lowercase(), &nodes)?;
+                            day_vec.push(BasicPathway {
+                                start: 354,
+                                end: end_id,
+                                start_spot: Location::Lexington,
+                                end_spot: Location::Classroom(end_class),
+                            });
+                        }
+                        None => {
+                            let entrance_id = match entrance {
+                                EnterExit::WestMain => 988,
+                                EnterExit::EastMain => 987,
+                                EnterExit::D13 => 691,
+                                EnterExit::D6 => 692,
+                            };
+                            day_vec.push(BasicPathway {
+                                start: entrance_id,
+                                end: 354,
+                                start_spot: Location::Entrance,
+                                end_spot: Location::Lexington,
+                            });
+                            let end_class = clean_classes[num + 1].clone().ok_or("Final class was a None")?;
+                            let end_id = name_to_id(&end_class.room.trim().to_lowercase(), &nodes)?;
+                            day_vec.push(BasicPathway {
+                                start: 354,
+                                end: end_id,
+                                start_spot: Location::Lexington,
+                                end_spot: Location::Classroom(end_class),
+                            });
+                        }
                     }
                 }
             }
@@ -515,32 +513,21 @@ pub fn node_find_func(
             EnterExit::D13 => 691,
             EnterExit::D6 => 692,
         };
-        if clean_classes.last().unwrap().clone() == None {
-            //println!("{clean_classes:#?}");
-        }
 
-        let final_class_id = name_to_id(
-            &clean_classes
-                .last()
-                .unwrap()
-                .clone()
-                .unwrap()
-                .room
-                .trim()
-                .to_lowercase(),
-            &nodes,
-        )
-        .unwrap();
+        let final_class = clean_classes
+            .last()
+            .ok_or("clean_classes had no last()")?
+            .clone()
+            .ok_or("clean_classes was None")?;
 
         day_vec.push(BasicPathway {
-            start: final_class_id,
+            start: name_to_id(&final_class.room.trim().to_lowercase(), &nodes)?,
             end: exit_id,
-            start_spot: Location::Classroom(clean_classes.last().unwrap().clone().unwrap().clone()),
+            start_spot: Location::Classroom(final_class),
             end_spot: Location::Exit,
         });
         master_vec.push(day_vec);
     }
-    //println!("skibiid \n{:#?}", master_vec[1]);
 
     let mut daily_node = DailyNode {
         anode: None,
