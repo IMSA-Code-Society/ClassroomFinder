@@ -7,21 +7,26 @@ use actix_multipart::Multipart;
 use actix_web::{web, HttpResponse, Responder, Result};
 
 pub async fn home_page() -> impl Responder {
+    println!("direct path loaded");
     serve_html("assets/path/home.html")
 }
 
 pub async fn input() -> impl Responder {
+    println!("main schedule maker loaded");
     serve_html("assets/input/index.html")
 }
 
 pub async fn editor() -> impl Responder {
+    println!("!!! editor loaded");
     serve_html("assets/editor/editor.html")
 }
 pub async fn about() -> impl Responder {
+    println!("about loaded");
     serve_html("assets/about/about.html")
 }
 
 pub async fn image() -> impl Responder {
+    println!("image loaded");
     match std::fs::read("assets/imsa_hallway.jpg") {
         Ok(file) => HttpResponse::Ok().content_type("image/jpg").body(file),
         Err(err) => HttpResponse::from_error(err),
@@ -29,6 +34,7 @@ pub async fn image() -> impl Responder {
 }
 
 pub async fn css_handler() -> impl Responder {
+    println!("css loaded");
     match tokio::fs::read_to_string("assets/home.css").await {
         Ok(file) => HttpResponse::Ok().content_type("text/css").body(file),
         Err(err) => HttpResponse::from_error(err),
@@ -37,9 +43,7 @@ pub async fn css_handler() -> impl Responder {
 
 fn serve_html(path: &str) -> impl Responder {
     match std::fs::read(path) {
-        Ok(file) => HttpResponse::Ok()
-        .content_type("text/html")
-        .body(file),
+        Ok(file) => HttpResponse::Ok().content_type("text/html").body(file),
         Err(err) => HttpResponse::from_error(err),
     }
 }
@@ -132,6 +136,7 @@ pub async fn schedule_handle(web::Json(request): web::Json<serde_json::Value>) -
                 .json(serde_json::json!({"status": 1, "error_message": err}))
         }
     };
+    println!("Recieved user input {user_input}");
     let enter: EnterExit = match request["Enter"].as_str().ok_or("No 'Enter' JSON key found") {
         Ok("west") => EnterExit::WestMain,
         Ok("east") => EnterExit::EastMain,
@@ -216,7 +221,7 @@ pub async fn schedule_handle(web::Json(request): web::Json<serde_json::Value>) -
             }
         };
     let json: serde_json::Value = build_schedule_json(path_master_vec_1, path_master_vec_2, &nodes);
-
+    println!("Schedule generated!");
     HttpResponse::Ok().json(json)
 }
 

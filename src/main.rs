@@ -155,6 +155,7 @@ async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clon
                 .service(Files::new("/assets", "assets")),
         );
     };
+    
 
     Ok(config.into())
 }
