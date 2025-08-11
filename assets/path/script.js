@@ -1,8 +1,10 @@
 
 document.addEventListener('DOMContentLoaded', () => {
+    let has_submitted = false;
     const manual = 0.86;
     let currentScale = 1;
     document.getElementsByClassName("path_button")[0].addEventListener("click", () => {
+        has_submitted = true;
         arrowFetch()
     })
     const svg = document.getElementById("mySvg");
@@ -143,8 +145,9 @@ document.addEventListener('DOMContentLoaded', () => {
         svg.setAttribute("viewBox", `0 0 ${imageRect.width} ${imageRect.height}`);
     }
     window.addEventListener('resize', () => {
-        arrowFetch();
-
+        if (has_submitted) {
+            arrowFetch();
+        }
     });
 
 })
