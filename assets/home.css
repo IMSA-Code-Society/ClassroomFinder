@@ -5,8 +5,9 @@ canvas {
 
 
 .hallway {
-  position: absolute;
-  width: 200%;
+  position: relative;
+  width: 100%;
+  display: block;
 }
 
 .edit-bottom-part {
@@ -40,6 +41,17 @@ body {
   height: 75%;
   position: relative;
   display: inline-block;
+}
+
+#panzoom-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 #error_message {
