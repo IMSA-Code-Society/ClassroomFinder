@@ -179,8 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (start === false) {
             val = 1
         };
-        console.log(val);
-        console.log("Trying to get full, here's the deets: ", pathDetails)
+
 
         const fullPath = pathDetails.path[0].name + ' → ' + pathDetails.path[pathDetails.path.length - 1].name;
         if (pathDetails.info[val] !== null) {
@@ -224,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let tooltipContent = `<strong>${label.name}</strong><br/>`;
                 tooltipContent += getFullPathDescription(label.pathDetails, false);
                 let black_if_yellow = "";
-                if (label.color === "yellow") {
+                if (label.color === "yellow" || label.color === "cyan" || label.color === "chartreuse") {
                     black_if_yellow = "color: black;"
                 }
 
@@ -292,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
             .then((data) => data.json())
             .then((json) => {
-                console.log("Here is the json: ", json);
+                console.log("Here is the json recieved: ", json);
                 if (json.status == 1) {
                     document.getElementById('error_message').innerHTML = `There was an error: ${json.error_message}. Hint: checking the <a id="error_message_link" href="/about">About Page</a> might help you`;
                     return;
@@ -314,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 curday.forEach((path, curnum) => {
-                    console.log("Current path: ", path);
+
                     const pathDetails = {
                         path: path["nodes"],
                         startName: path["nodes"][0].name,
@@ -441,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const radius = 12 / currentScale;
         const shortenEnd = 6 / currentScale;
-
+        let to_draw_arrowhead = 0;
         for (let i = 0; i < arrows.length; i++) {
             const cur = arrows[i];
 
@@ -496,6 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (cur.color !== currentColor) {
                     if (path) {
                         path.setAttribute("d", d);
+                        path.setAttribute("stroke-width", 2)
                         svg.appendChild(path);
                     }
 
@@ -552,7 +552,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     d += `L ${trimmedX} ${trimmedY}`;
                 }
 
-                drawArrowhead(x, y, nextX, nextY, cur.color, 1.3 / currentScale);
+
+                if (to_draw_arrowhead == 0) {
+                    drawArrowhead(x, y, nextX, nextY, cur.color, 1.3 / currentScale);
+                    to_draw_arrowhead = 1;
+                } else if (to_draw_arrowhead == 3) {
+                    to_draw_arrowhead = 0;
+                } else {
+                    to_draw_arrowhead += 1;
+                };
+
 
                 if (cur.type === 'end') {
                     const fontSize = 12;
@@ -589,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     svg.appendChild(rect);
                     let text_color = "white";
-                    if (cur.color === "yellow") {
+                    if (cur.color === "yellow" || cur.color === "cyan" || cur.color === "chartreuse") {
                         text_color = "black";
                     }
                     const finalText = createSvgElement("text", {
@@ -618,6 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (path) {
             path.setAttribute("d", d);
+            path.setAttribute("stroke-width", 2)
             svg.appendChild(path);
         }
     }
@@ -626,27 +636,82 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function drawArrowhead(x1, y1, x2, y2, color, scale) {
         const angle = Math.atan2(y2 - y1, x2 - x1);
-        const arrowLength = 12;
+        const arrowLength = 6 * (scale || 1);
 
         const tipX = x2;
         const tipY = y2;
 
-        const baseX1 = tipX - arrowLength * Math.cos(angle - Math.PI / 10);
-        const baseY1 = tipY - arrowLength * Math.sin(angle - Math.PI / 10);
+        const baseX1 = tipX - arrowLength * Math.cos(angle - Math.PI / 14);
+        const baseY1 = tipY - arrowLength * Math.sin(angle - Math.PI / 14);
 
-        const baseX2 = tipX - arrowLength * Math.cos(angle + Math.PI / 10);
-        const baseY2 = tipY - arrowLength * Math.sin(angle + Math.PI / 10);
+        const baseX2 = tipX - arrowLength * Math.cos(angle + Math.PI / 14);
+        const baseY2 = tipY - arrowLength * Math.sin(angle + Math.PI / 14);
 
-        const arrowHead = createSvgElement("polygon", {
-            points: `${tipX},${tipY} ${baseX1},${baseY1} ${baseX2},${baseY2}`,
-            fill: color,
-            stroke: "black",
+
+        const darkerColor = darkenColor(color, 0.6);
+
+        const line1 = createSvgElement("line", {
+            x1: tipX,
+            y1: tipY,
+            x2: baseX1,
+            y2: baseY1,
+            stroke: darkerColor,
             "stroke-width": 1
         });
 
-        svg.appendChild(arrowHead);
+        const line2 = createSvgElement("line", {
+            x1: tipX,
+            y1: tipY,
+            x2: baseX2,
+            y2: baseY2,
+            stroke: darkerColor,
+            "stroke-width": 1
+        });
+
+        svg.appendChild(line1);
+        svg.appendChild(line2);
     }
 
+    function darkenColor(color, factor = 0.7) {
+
+        const ctx = document.createElement("canvas").getContext("2d");
+        ctx.fillStyle = color;
+        let computed = ctx.fillStyle;
+
+        function hexToRgb(hex) {
+
+            hex = hex.replace(/^#/, '');
+
+            if (hex.length === 3) {
+                hex = hex.split('').map(c => c + c).join('');
+            }
+
+            const num = parseInt(hex, 16);
+            return [
+                (num >> 16) & 255,
+                (num >> 8) & 255,
+                num & 255,
+            ];
+        }
+
+        let r, g, b;
+
+        if (computed.startsWith('#')) {
+            [r, g, b] = hexToRgb(computed);
+        } else {
+            const rgbMatch = computed.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            if (!rgbMatch) {
+                return color;
+            }
+            [r, g, b] = rgbMatch.slice(1, 4).map(Number);
+        }
+
+        r = Math.max(0, Math.floor(r * factor));
+        g = Math.max(0, Math.floor(g * factor));
+        b = Math.max(0, Math.floor(b * factor));
+
+        return `rgb(${r}, ${g}, ${b})`;
+    }
 
 
 
