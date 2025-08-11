@@ -1,7 +1,7 @@
 
 
 document.addEventListener('DOMContentLoaded', () => {
-
+    let has_submitted = false;
     document.getElementById('bottom-part').hidden = false;
     const colorMap = {
         0: "red",
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(val);
         console.log("Trying to get full, here's the deets: ", pathDetails)
 
-        const fullPath = pathDetails.path[0].name + ' → ' + pathDetails.path[pathDetails.path.length -1].name;
+        const fullPath = pathDetails.path[0].name + ' → ' + pathDetails.path[pathDetails.path.length - 1].name;
         if (pathDetails.info[val] !== null) {
             const { days, end, long_name, mods, room, semester, short_name, start, teacher } = pathDetails.info[val];
             const daysFormatted = days.join(", ");
@@ -188,13 +188,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (label.color === "yellow") {
                     black_if_yellow = "color: black;"
                 }
-                
+
                 tooltip.innerHTML = `<div style="${black_if_yellow}">${tooltipContent}</div>`;
-                
+
                 tooltip.style["border"] = "1px solid " + label.color;
                 tooltip.style["backgroundColor"] = label.color;
                 tooltip.style["borderRadius"] = "10px";
-                
+
                 tooltipVisible = true;
             }
         });
@@ -207,7 +207,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     adjustSvgSize();
     window.addEventListener('resize', () => {
-        arrowFetch();
+        if (has_submitted) {
+            arrowFetch();
+        }
+
 
     });
 
@@ -224,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('scheduleForm').addEventListener('submit', function (e) {
+        has_submitted = true;
         e.preventDefault();
 
         arrowFetch();
@@ -326,9 +330,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     }
                 });
-                
+
                 const scheduleBox = document.getElementById('scheduleBox');
-                scheduleBox.innerHTML = ''; 
+                scheduleBox.innerHTML = '';
 
                 curday.forEach((path, curnum) => {
                     const startName = path["nodes"][0].name;
