@@ -449,7 +449,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 adjustSvgSize();
                 document.getElementById('error_message').innerHTML = "";
                 redrawArrows();
-
+                document.getElementById('bottom-part').hidden = true;
+                document.getElementById('map').style.height = '100%';
             })
 
     }
