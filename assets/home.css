@@ -107,6 +107,7 @@ body {
 
 #zoomIn,
 #viewTog,
+#downloadMapBtn,
 #zoomOut {
   width: 40px;
   height: 40px;

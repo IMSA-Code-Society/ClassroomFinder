@@ -22,6 +22,45 @@ document.addEventListener('DOMContentLoaded', () => {
     const svg = document.getElementById("mySvg");
 
     const image = document.getElementById('hallwayImage');
+    document.getElementById("downloadMapBtn").addEventListener("click", downloadMapImage);
+
+    function downloadMapImage() {
+        const image = document.getElementById("hallwayImage");
+        const svg = document.getElementById("mySvg");
+
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+        const svgUrl = URL.createObjectURL(svgBlob);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        const ctx = canvas.getContext("2d");
+
+        const imgObj = new Image();
+        imgObj.crossOrigin = "anonymous";
+        imgObj.src = image.src;
+
+        imgObj.onload = () => {
+            ctx.drawImage(imgObj, 0, 0, canvas.width, canvas.height);
+
+            const svgImg = new Image();
+            svgImg.crossOrigin = "anonymous";
+            svgImg.src = svgUrl;
+
+            svgImg.onload = () => {
+                ctx.drawImage(svgImg, 0, 0, canvas.width, canvas.height);
+
+                const link = document.createElement("a");
+                link.download = "map_with_arrows.png";
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+
+                URL.revokeObjectURL(svgUrl);
+            };
+        };
+    }
+
 
 
     function adjustSvgSize() {
