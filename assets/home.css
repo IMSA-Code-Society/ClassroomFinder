@@ -136,6 +136,7 @@ body {
 }
 
 #viewTog:hover,
+#downloadMapBtn:hover,
 #zoomIn:hover,
 #zoomOut:hover {
   background-color: #9DBBAE;
@@ -215,6 +216,7 @@ svg {
 textarea {
   background-color: #2E2E34;
   border-width: 0;
+  border-radius: 15px;
   color: #EEF0F2;
 }
 

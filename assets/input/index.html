@@ -16,13 +16,13 @@
 
 <body>
     <div class="view-buttons">
-                <button id="downloadMapBtn">💾</button>
-        <button id="viewTog">👁️</button>
-        <button id="zoomIn">+</button>
-        <button id="zoomOut">-</button>
+        <button title="Download an image of your schedule map" id="downloadMapBtn">💾</button>
+        <button title="Hide the bottom input panel" id="viewTog">👁️</button>
+        <button title="Zoom in" id="zoomIn">+</button>
+        <button title="Zoom out" id="zoomOut">-</button>
 
     </div>
-    <div id="scheduleBox" class="schedule-box"></div>
+    <div title="Order of your schedule" id="scheduleBox" class="schedule-box"></div>
 
     <div class="map" id="map" style="overflow: hidden;">
         <div id="panzoom-container">
@@ -34,33 +34,36 @@
     <div id="bottom-part">
 
         <p>The order of classes is by color. IE, red is 1st, orange 2nd...</p>
-        <textarea id="scheduleInput" placeholder="Enter schedule... (see the ABOUT page if you need help!) " rows="6%"
+        <textarea
+            title="Input your Powerschool Schedule here. See the About page for help if you don't know where that is."
+            id="scheduleInput" placeholder="Enter schedule... (see the ABOUT page if you need help!) " rows="6%"
             cols="150%"></textarea>
         <form id="scheduleForm">
 
             <br>
             <div id="maindiv">
                 <label for="daySelector">Choose what to render:</label>
-                <select id="daySelector">
+                <select title="Select which day to render" id="daySelector">
                     <option value="aday">A Day</option>
                     <option value="bday">B Day</option>
                     <option value="cday">C Day</option>
                     <option value="dday">D Day</option>
                     <option value="iday">I Day</option>
                 </select>
-                <select id="semSelector">
+                <select title="Select from which semester to render classes" id="semSelector">
                     <option value="Semester 1">Semester One</option>
                     <option value="Semester 2">Semester Two</option>
                 </select>
-                <p>Midday @ Lexington?</p><input type="checkbox" id="midday" value="lexington">
-                <p>Enter:</p><select id="enterSelector">
+                <p>Midday @ Lexington?</p><input title="Select whether or not to stop by Lexington." type="checkbox"
+                    id="midday" value="lexington">
+                <p>Enter:</p><select title="Select which entrance to use" id="enterSelector">
                     <option value="east">East Main</option>
                     <option value="west">West Main</option>
 
                     <option value="d13">Door 13</option>
                     <option value="d6">Door 6</option>
                 </select>
-                <p>Exit:</p><select id="exitSelector">
+                <p>Exit:</p><select title="Select which exit to use" id="exitSelector">
                     <option value="east">East Main</option>
                     <option value="west">West Main</option>
 
@@ -68,7 +71,7 @@
                     <option value="d6">Door 6</option>
                 </select>
             </div>
-            <button type="submit" id="submit">Submit</button>
+            <button title="Submit and render your schedule" type="submit" id="submit">Submit</button>
 
             <br>
             <br>
@@ -86,7 +89,7 @@
             </div>
 
             <p id="error_message" ;></p>
-
+            <br>
 
 
         </form>
