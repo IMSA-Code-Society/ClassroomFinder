@@ -110,7 +110,12 @@ fn split_semesters(input: &str) -> (String, String) {
 
 pub fn get_schedule(input: &str) -> (Result<Vec<Class>, String>, Result<Vec<Class>, String>) {
     let (sem1, sem2) = split_semesters(input);
-
+    if sem1.is_empty() && sem2.is_empty() {
+        return (
+            Err("Did you actually input anything? Make sure you copy and paste your schedule in!".to_owned()),
+            Ok(Vec::new()),
+        );
+    };
     if sem1.is_empty() || sem2.is_empty() {
         return (
             Err("Please provide both semesters".to_owned()),
@@ -493,7 +498,9 @@ pub fn node_find_func(
                                 start_spot: Location::Entrance,
                                 end_spot: Location::Lexington,
                             });
-                            let end_class = clean_classes[num + 1].clone().ok_or("Final class was a None")?;
+                            let end_class = clean_classes[num + 1]
+                                .clone()
+                                .ok_or("Final class was a None")?;
                             let end_id = name_to_id(&end_class.room.trim().to_lowercase(), &nodes)?;
                             day_vec.push(BasicPathway {
                                 start: 354,
