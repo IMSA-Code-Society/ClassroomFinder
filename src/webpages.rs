@@ -5,6 +5,7 @@ use crate::{
 
 use actix_multipart::Multipart;
 use actix_web::{web, HttpResponse, Responder, Result};
+use log::error;
 
 pub async fn home_page() -> impl Responder {
     println!("direct path loaded");
@@ -179,7 +180,7 @@ pub async fn schedule_handle(web::Json(request): web::Json<serde_json::Value>) -
         }
         (Err(err1), Err(err2)) => {
             let full_err = format!("Semester 1 error: {err1} \nSemester 2 error: {err2}");
-            println!("{}", full_err);
+            error!("{}", full_err);
             return HttpResponse::BadRequest()
                 .json(serde_json::json!({"status": 1, "error_message": full_err,}));
         }

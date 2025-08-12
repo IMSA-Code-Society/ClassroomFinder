@@ -10,6 +10,7 @@ Exp    Trm    Crs-Sec    Course Name    Teacher    Room    Enroll    Leave
 8(A-D)    S1    MAT474-1    Abstract Algebra    Fogel, Micah    A155    08/19/2024    01/19/2025
 */
 use lazy_static::lazy_static;
+use log::error;
 use regex::Regex;
 
 use crate::{closest_pair_between, name_to_id, pathfinding, Node};
@@ -203,7 +204,7 @@ fn resolve_semester(input: &str) -> Result<Vec<Class>, String> {
 
 fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
     if !DAY_REGEX.is_match(day_str) {
-        println!("Invalid day value: {day_str}");
+        error!("Invalid day value: {day_str}");
         return Err(format!("Invalid day value: {day_str}"));
     }
 
@@ -218,11 +219,11 @@ fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
             _ if day.contains('-') => {
                 let (start, end) = day
                     .split_once('-')
-                    .ok_or_else(|| { let res= format!("Invalid range: '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again."); println!("{}", res); res})?;
+                    .ok_or_else(|| { let res= format!("Invalid range: '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again."); error!("{}", res); res})?;
                 let start = start
                     .chars()
                     .next()
-                    .ok_or_else(|| { let res = format!("Invalid start day: '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again."); println!("{res}"); res})?;
+                    .ok_or_else(|| { let res = format!("Invalid start day: '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again."); error!("{res}"); res})?;
                 let end = end.chars().next().unwrap_or(start);
                 days.extend((start..=end).filter_map(|d| match d {
                     'A' => Some(Day::A),
@@ -235,7 +236,7 @@ fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
             }
             _ => {
                 let fort = format!("Unknown day pattern '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again.");
-                println!("{}", fort);
+                error!("{}", fort);
                 return Err(fort);
             }
         }
@@ -246,7 +247,7 @@ fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
 fn parse_mods(mod_str: &str) -> Result<Vec<u8>, String> {
     if !MODS_REGEX.is_match(mod_str) {
         let err = format!("Invalid mod value: {mod_str}");
-        println!("{}", err);
+        error!("{}", err);
         return Err(err);
     }
 
@@ -276,13 +277,13 @@ fn sort_by_day(schedule_info: &ScheduleInfo) -> Result<Vec<Class>, String> {
             let parsed_mods_days = if CURREG_REGEX.is_match(mods_days) {
                 MODS_DAY_REGEX.find_iter(mods_days)
                     .map(|mat| {
-                        let (mod_str, day_str) = mat.as_str().split_once('(').ok_or_else(|| {let thing = "Could not split by delimiter '(' "; println!("{thing} {}", mat.as_str()); thing})?;
+                        let (mod_str, day_str) = mat.as_str().split_once('(').ok_or_else(|| {let thing = "Could not split by delimiter '(' "; error!("{thing} {}", mat.as_str()); thing})?;
                         Ok((parse_day(day_str.trim_end_matches(')'))?, parse_mods(mod_str)?))
                     })
                     .collect::<Result<Vec<_>, String>>()?
             } else {
                 let (mod_str, day_str) = mods_days.split_once('(')
-                    .ok_or_else(|| { let err = format!("There was no \"(\" token in line {item}. The problematic input was {mods_days}"); println!("{err}"); err})?;
+                    .ok_or_else(|| { let err = format!("There was no \"(\" token in line {item}. The problematic input was {mods_days}"); error!("{err}"); err})?;
                 vec![(parse_day(day_str.trim_end_matches(')'))?, parse_mods(mod_str)?)]
             };
 
@@ -352,7 +353,7 @@ pub fn path(weekly_schedule: &Vec<Class>) -> Result<[[&Class; 8]; 5], String> {
                     if index < 8 {
                         weekly_path[day][index] = class;
                     } else {
-                        println!("Unexpected mod value --> {mod_num}");
+                        error!("Unexpected mod value --> {mod_num}");
                         return Err(format!("Unexpected mod value --> {mod_num}"));
                     }
                 }
@@ -433,14 +434,14 @@ pub fn node_find_func(
                             .ok_or_else(|| {
                                 match name_to_id(&class.room.trim().to_lowercase(), &nodes) {
                                     Ok(_) => {
-                                        println!(
+                                        error!(
                                             "Unable to find a node match for room {:?}",
                                             next_class
                                         );
                                         format!("Could not match room '{}'", next_class.room)
                                     }
                                     Err(_) => {
-                                        println!(
+                                        error!(
                                             "Unable to find a node match for room {:?}",
                                             class
                                         );
@@ -469,7 +470,7 @@ pub fn node_find_func(
                         .ok_or_else(|| {
                             match name_to_id(&class.room.trim().to_lowercase(), &nodes) {
                                 Ok(_) => {
-                                    println!(
+                                    error!(
                                         "unable to find a node match for room {:?}",
                                         next_class
                                     );
@@ -477,7 +478,7 @@ pub fn node_find_func(
                                     format!("Could not match room '{}'", next_class.room)
                                 }
                                 Err(_) => {
-                                    println!("Unable to find a node match for room {:?}", class);
+                                    error!("Unable to find a node match for room {:?}", class);
                                     format!("Could not match room '{}'", class.room,)
                                 }
                             }
