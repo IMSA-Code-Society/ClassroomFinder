@@ -1,5 +1,6 @@
 use actix_files::Files;
 use actix_web::web::{self, ServiceConfig};
+use log::error;
 use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 use shuttle_actix_web::ShuttleActixWeb;
@@ -108,7 +109,7 @@ fn name_to_id(name: &str, nodes: &[Node]) -> Result<usize, String> {
         .find(|node| node.name.to_lowercase() == name.to_lowercase())
         .map(|node| node.id)
         .ok_or_else(|| {
-            println!("Could not identify a node for string '{name}'");
+            error!("Could not identify a node for string '{name}'");
             format!("Could not identify a node for string '{name}'").to_string()
         })
 }
