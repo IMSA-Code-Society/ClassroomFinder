@@ -103,17 +103,21 @@ fn reset_nodes(nodes: &mut [Node]) {
 }
 
 fn name_to_id(name: &str, nodes: &[Node]) -> Result<usize, String> {
+
     nodes
         .iter()
         .find(|node| node.name.to_lowercase() == name.to_lowercase())
-        .map(|node| node.id).ok_or(format!("Could not identify a node for string '{name}'").to_string())
+        .map(|node| node.id)
+        .ok_or(format!("Could not identify a node for string '{name}'").to_string())
 }
 fn name_to_ids<'a>(name: &str, nodes: &'a [Node]) -> Vec<&'a Node> {
-    let name_lower = name.to_lowercase();
-    nodes
+
+    let res = nodes
         .iter()
-        .filter(|node| node.name.to_lowercase() == name_lower)
-        .collect()
+        .filter(|node| node.name.to_lowercase() == name.to_lowercase())
+        .collect();
+    
+    res
 }
 
 fn closest_pair_between(
@@ -123,6 +127,7 @@ fn closest_pair_between(
 ) -> Option<(usize, usize)> {
     let starts = name_to_ids(start_name, nodes);
     let ends = name_to_ids(end_name, nodes);
+    
 
     starts
         .iter()
@@ -155,7 +160,6 @@ async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clon
                 .service(Files::new("/assets", "assets")),
         );
     };
-    
 
     Ok(config.into())
 }
