@@ -26,7 +26,7 @@ pub async fn about() -> impl Responder {
 }
 
 pub async fn image() -> impl Responder {
-    println!("image loaded");
+    
     match std::fs::read("assets/imsa_hallway.jpg") {
         Ok(file) => HttpResponse::Ok().content_type("image/jpg").body(file),
         Err(err) => HttpResponse::from_error(err),
@@ -34,7 +34,7 @@ pub async fn image() -> impl Responder {
 }
 
 pub async fn css_handler() -> impl Responder {
-    println!("css loaded");
+    
     match tokio::fs::read_to_string("assets/home.css").await {
         Ok(file) => HttpResponse::Ok().content_type("text/css").body(file),
         Err(err) => HttpResponse::from_error(err),
@@ -179,6 +179,7 @@ pub async fn schedule_handle(web::Json(request): web::Json<serde_json::Value>) -
         }
         (Err(err1), Err(err2)) => {
             let full_err = format!("Semester 1 error: {err1} \nSemester 2 error: {err2}");
+            println!("{}", full_err);
             return HttpResponse::BadRequest()
                 .json(serde_json::json!({"status": 1, "error_message": full_err,}));
         }
