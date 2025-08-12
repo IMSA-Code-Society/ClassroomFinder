@@ -112,7 +112,10 @@ pub fn get_schedule(input: &str) -> (Result<Vec<Class>, String>, Result<Vec<Clas
     let (sem1, sem2) = split_semesters(input);
     if sem1.is_empty() && sem2.is_empty() {
         return (
-            Err("Did you actually input anything? Make sure you copy and paste your schedule in!".to_owned()),
+            Err(
+                "Did you actually input anything? Make sure you copy and paste your schedule in!"
+                    .to_owned(),
+            ),
             Ok(Vec::new()),
         );
     };
@@ -168,13 +171,17 @@ fn resolve_semester(input: &str) -> Result<Vec<Class>, String> {
             .split('\t')
             .map(|s| s.trim().to_string())
             .collect();
+        let mut roomche: String = split[5].clone();
+        if roomche.contains("/") {
+            roomche = roomche.split('/').collect::<Vec<&str>>()[0].to_owned();
+        }
         if split.len() == 8 {
             mods.push(split[0].clone());
             semester.push(split[1].clone());
             short_name.push(split[2].clone());
             long_name.push(split[3].clone());
             teacher.push(split[4].clone());
-            room.push(split[5].clone());
+            room.push(roomche);
             start.push(split[6].clone());
             end.push(split[7].clone());
         } else {
@@ -415,10 +422,24 @@ pub fn node_find_func(
                                 &next_class.room.trim().to_lowercase(),
                                 &nodes,
                             )
-                            .ok_or(format!(
-                                "Could not match rooms '{}' or '{}'",
-                                class.room, next_class.room
-                            ))?;
+                            .ok_or_else(|| {
+                                match name_to_id(&class.room.trim().to_lowercase(), &nodes) {
+                                    Ok(good) => {
+                                        println!(
+                                            "Unable to find a node match for room {:?}",
+                                            next_class
+                                        );
+                                        format!("Could not match room '{}'", next_class.room)
+                                    }
+                                    Err(_) => {
+                                        println!(
+                                            "Unable to find a node match for room {:?}",
+                                            class
+                                        );
+                                        format!("Could not match room '{}'", class.room,)
+                                    }
+                                }
+                            })?;
 
                             if start_room != next_room {
                                 day_vec.push(BasicPathway {
@@ -437,10 +458,22 @@ pub fn node_find_func(
                             &next_class.room.trim().to_lowercase(),
                             &nodes,
                         )
-                        .ok_or(format!(
-                            "Could not match rooms '{}' or '{}'",
-                            class.room, next_class.room
-                        ))?;
+                        .ok_or_else(|| {
+                            match name_to_id(&class.room.trim().to_lowercase(), &nodes) {
+                                Ok(good) => {
+                                    println!(
+                                        "unable to find a node match for room {:?}",
+                                        next_class
+                                    );
+                                    
+                                    format!("Could not match room '{}'", next_class.room)
+                                }
+                                Err(_) => {
+                                    println!("Unable to find a node match for room {:?}", class);
+                                    format!("Could not match room '{}'", class.room,)
+                                }
+                            }
+                        })?;
 
                         if start_room != next_room {
                             day_vec.push(BasicPathway {
