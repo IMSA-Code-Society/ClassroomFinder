@@ -9,6 +9,12 @@
     <title>About This Site</title>
     <link rel="stylesheet" href="/home.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta property="og:title" content="IMSA Schedule Map Maker" />
+    <meta property="og:description"
+        content="This website will generate a map of your IMSA schedule to ease navigation" />
+    <meta property="og:image" content="https://schedule-map-maker.epochml.org/assets/about/epochLogo.jpg" />
+    <meta property="og:url" content="https://schedule-map-maker.epochml.org/" />
+    <meta property="og:type" content="website" />
 </head>
 
 <body style="background-color: #1E201E; " ;>
@@ -31,9 +37,8 @@
             original basic path finder, where you input two places and it generates
             a path between the two. This project builds on that basic idea by having one
             input their schedule and have the path be auto-generated. This website is a project of IMSA's EPOCH, the
-            leading club for computer science here. More information can be found at <a
-                style="padding-right:0px" target="_blank" rel="noopener noreferrer"
-                href="https://epochml.org/">EPOCH's website</a>.
+            leading club for computer science here. More information can be found at <a style="padding-right:0px"
+                target="_blank" rel="noopener noreferrer" href="https://epochml.org/">EPOCH's website</a>.
 
             The GitHub repository for this project can be found <a style="padding-right: 0px" target="_blank"
                 rel="noopener noreferrer" href="https://github.com/1337isnot1337/ClassroomFinder-rust">here</a>. The
@@ -71,6 +76,10 @@
                         href="https://imsa.powerschool.com/guardian/yearsched.html">here</a> after
                     logging into Powerschool and it will take you to the page.
                     Once at the "Year Schedule" page, copy <b>BOTH</b> the first and second semester parts entirely.
+
+                    <b>Please make sure you copy the "Y25-26" (or whatever year) header also! If you are getting errors
+                        double check that your schedule looks similar to the one below + in the image!</b>
+
                     Then paste
                     this into the schedule text box. Then, choose which day you want to render, along with any other
                     settings,
@@ -100,10 +109,8 @@ Exp    Trm    Crs-Sec    Course Name    Teacher    Room    Enroll    Leave
 8(A-D)    S1    MAT474-1    Abstract Algebra    Fogel, Micah    A155    08/19/2024    01/19/2025
 
         </pre>
-                    <p style="font-size: smaller; text-align: center;">A screenshot of the area needed to be copied
-                        (blurred
-                        for
-                        privacy)</p>
+                    <p style="font-size: smaller; text-align: center;">A screenshot of the area needed to be copied.
+                        Make sure you copy EVERYTHING in here.</p>
                     <img src="assets/about/schedule.png" alt="This is the schedule"
                         style="max-width: 100%; height: auto; display: block;">
                 </div>
@@ -140,7 +147,7 @@ Exp    Trm    Crs-Sec    Course Name    Teacher    Room    Enroll    Leave
             </details>
             <details>
                 <summary>
-                    What is that "George's Schedule Machine" Link?
+                    What are those "George's Schedule Machine" and "Add/Drop Calculator" Links?
                 </summary>
                 <div style="font-size: medium;">
                     <a style="padding-right:0px" target="_blank" rel="noopener noreferrer"
@@ -148,7 +155,19 @@ Exp    Trm    Crs-Sec    Course Name    Teacher    Room    Enroll    Leave
                     helpful website that you can use when figuring out your
                     schedule. You input your Powerschool schedule similarly, and it will generate a block by block
                     diagram of your schedule. Go check it out!
+                    The <a rel="noopener noreferrer" href="https://imsa-course-planner.vercel.app/">Add/Drop
+                        Calculator</a> is also a super helpful tool when planning out your Add/Drop. Put in your
+                    Powerschool schedule and input the classes you'd like to take and see the results. Also go check it
+                    out!
+
                 </div>
+            </details>
+            <details>
+                <summary>
+                    There's an Error/Something's Buggy or Broken
+                </summary>
+                <div style="font-size: medium;">
+                    If there's something messed up, please fill out an issue on the GitHub!</div>
             </details>
         </div>
 
@@ -163,6 +182,8 @@ Exp    Trm    Crs-Sec    Course Name    Teacher    Room    Enroll    Leave
                     <a rel="noopener noreferrer" href="/path">Direct Path ></a>
                     <a rel="noopener noreferrer" href="https://geosir.github.io/imsa-scheduler/">George's
                         Schedule Machine >></a>
+                    <a rel="noopener noreferrer" href="https://imsa-course-planner.vercel.app/">Add/Drop Calculator
+                        >></a>
                 </p>
             </div>
         </div>

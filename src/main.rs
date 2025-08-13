@@ -1,5 +1,6 @@
 use actix_files::Files;
 use actix_web::web::{self, ServiceConfig};
+use log::error;
 use serde::{Deserialize, Serialize};
 use serde_json::from_reader;
 use shuttle_actix_web::ShuttleActixWeb;
@@ -106,14 +107,19 @@ fn name_to_id(name: &str, nodes: &[Node]) -> Result<usize, String> {
     nodes
         .iter()
         .find(|node| node.name.to_lowercase() == name.to_lowercase())
-        .map(|node| node.id).ok_or(format!("Could not identify a node for string '{name}'").to_string())
+        .map(|node| node.id)
+        .ok_or_else(|| {
+            error!("Could not identify a node for string '{name}'");
+            format!("Could not identify a node for string '{name}'").to_string()
+        })
 }
 fn name_to_ids<'a>(name: &str, nodes: &'a [Node]) -> Vec<&'a Node> {
-    let name_lower = name.to_lowercase();
-    nodes
+    let res = nodes
         .iter()
-        .filter(|node| node.name.to_lowercase() == name_lower)
-        .collect()
+        .filter(|node| node.name.to_lowercase() == name.to_lowercase())
+        .collect();
+
+    res
 }
 
 fn closest_pair_between(
@@ -155,7 +161,6 @@ async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clon
                 .service(Files::new("/assets", "assets")),
         );
     };
-    
 
     Ok(config.into())
 }

@@ -10,6 +10,7 @@ Exp    Trm    Crs-Sec    Course Name    Teacher    Room    Enroll    Leave
 8(A-D)    S1    MAT474-1    Abstract Algebra    Fogel, Micah    A155    08/19/2024    01/19/2025
 */
 use lazy_static::lazy_static;
+use log::error;
 use regex::Regex;
 
 use crate::{closest_pair_between, name_to_id, pathfinding, Node};
@@ -110,7 +111,15 @@ fn split_semesters(input: &str) -> (String, String) {
 
 pub fn get_schedule(input: &str) -> (Result<Vec<Class>, String>, Result<Vec<Class>, String>) {
     let (sem1, sem2) = split_semesters(input);
-
+    if sem1.is_empty() && sem2.is_empty() {
+        return (
+            Err(
+                "Did you actually input anything? Make sure you copy and paste your schedule in!"
+                    .to_owned(),
+            ),
+            Ok(Vec::new()),
+        );
+    };
     if sem1.is_empty() || sem2.is_empty() {
         return (
             Err("Please provide both semesters".to_owned()),
@@ -163,13 +172,17 @@ fn resolve_semester(input: &str) -> Result<Vec<Class>, String> {
             .split('\t')
             .map(|s| s.trim().to_string())
             .collect();
+        let mut roomche: String = split[5].clone();
+        if roomche.contains("/") {
+            roomche = roomche.split('/').collect::<Vec<&str>>()[0].to_owned();
+        }
         if split.len() == 8 {
             mods.push(split[0].clone());
             semester.push(split[1].clone());
             short_name.push(split[2].clone());
             long_name.push(split[3].clone());
             teacher.push(split[4].clone());
-            room.push(split[5].clone());
+            room.push(roomche);
             start.push(split[6].clone());
             end.push(split[7].clone());
         } else {
@@ -191,6 +204,7 @@ fn resolve_semester(input: &str) -> Result<Vec<Class>, String> {
 
 fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
     if !DAY_REGEX.is_match(day_str) {
+        error!("Invalid day value: {day_str}");
         return Err(format!("Invalid day value: {day_str}"));
     }
 
@@ -205,11 +219,11 @@ fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
             _ if day.contains('-') => {
                 let (start, end) = day
                     .split_once('-')
-                    .ok_or_else(|| format!("Invalid range: '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again."))?;
+                    .ok_or_else(|| { let res= format!("Invalid range: '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again."); error!("{}", res); res})?;
                 let start = start
                     .chars()
                     .next()
-                    .ok_or_else(|| format!("Invalid start day: '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again."))?;
+                    .ok_or_else(|| { let res = format!("Invalid start day: '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again."); error!("{res}"); res})?;
                 let end = end.chars().next().unwrap_or(start);
                 days.extend((start..=end).filter_map(|d| match d {
                     'A' => Some(Day::A),
@@ -220,7 +234,11 @@ fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
                     _ => None,
                 }));
             }
-            _ => return Err(format!("Unknown day pattern '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again.")),
+            _ => {
+                let fort = format!("Unknown day pattern '{day}' while parsing '{day_str}'. Try to copy and paste the schedule in again.");
+                error!("{}", fort);
+                return Err(fort);
+            }
         }
     }
     Ok(days)
@@ -228,7 +246,9 @@ fn parse_day(day_str: &str) -> Result<Vec<Day>, String> {
 
 fn parse_mods(mod_str: &str) -> Result<Vec<u8>, String> {
     if !MODS_REGEX.is_match(mod_str) {
-        return Err(format!("Invalid mod value: {mod_str}"));
+        let err = format!("Invalid mod value: {mod_str}");
+        error!("{}", err);
+        return Err(err);
     }
 
     Ok(mod_str
@@ -257,13 +277,13 @@ fn sort_by_day(schedule_info: &ScheduleInfo) -> Result<Vec<Class>, String> {
             let parsed_mods_days = if CURREG_REGEX.is_match(mods_days) {
                 MODS_DAY_REGEX.find_iter(mods_days)
                     .map(|mat| {
-                        let (mod_str, day_str) = mat.as_str().split_once('(').ok_or("Could not split by delimiter '(' ")?;
+                        let (mod_str, day_str) = mat.as_str().split_once('(').ok_or_else(|| {let thing = "Could not split by delimiter '(' "; error!("{thing} {}", mat.as_str()); thing})?;
                         Ok((parse_day(day_str.trim_end_matches(')'))?, parse_mods(mod_str)?))
                     })
                     .collect::<Result<Vec<_>, String>>()?
             } else {
                 let (mod_str, day_str) = mods_days.split_once('(')
-                    .ok_or_else(|| format!("There was no \"(\" token in line {item}. The problematic input was {mods_days}"))?;
+                    .ok_or_else(|| { let err = format!("There was no \"(\" token in line {item}. The problematic input was {mods_days}"); error!("{err}"); err})?;
                 vec![(parse_day(day_str.trim_end_matches(')'))?, parse_mods(mod_str)?)]
             };
 
@@ -333,6 +353,7 @@ pub fn path(weekly_schedule: &Vec<Class>) -> Result<[[&Class; 8]; 5], String> {
                     if index < 8 {
                         weekly_path[day][index] = class;
                     } else {
+                        error!("Unexpected mod value --> {mod_num}");
                         return Err(format!("Unexpected mod value --> {mod_num}"));
                     }
                 }
@@ -410,10 +431,24 @@ pub fn node_find_func(
                                 &next_class.room.trim().to_lowercase(),
                                 &nodes,
                             )
-                            .ok_or(format!(
-                                "Could not match rooms '{}' or '{}'",
-                                class.room, next_class.room
-                            ))?;
+                            .ok_or_else(|| {
+                                match name_to_id(&class.room.trim().to_lowercase(), &nodes) {
+                                    Ok(_) => {
+                                        error!(
+                                            "Unable to find a node match for room {:?}",
+                                            next_class
+                                        );
+                                        format!("Could not match room '{}'", next_class.room)
+                                    }
+                                    Err(_) => {
+                                        error!(
+                                            "Unable to find a node match for room {:?}",
+                                            class
+                                        );
+                                        format!("Could not match room '{}'", class.room,)
+                                    }
+                                }
+                            })?;
 
                             if start_room != next_room {
                                 day_vec.push(BasicPathway {
@@ -432,10 +467,22 @@ pub fn node_find_func(
                             &next_class.room.trim().to_lowercase(),
                             &nodes,
                         )
-                        .ok_or(format!(
-                            "Could not match rooms '{}' or '{}'",
-                            class.room, next_class.room
-                        ))?;
+                        .ok_or_else(|| {
+                            match name_to_id(&class.room.trim().to_lowercase(), &nodes) {
+                                Ok(_) => {
+                                    error!(
+                                        "unable to find a node match for room {:?}",
+                                        next_class
+                                    );
+
+                                    format!("Could not match room '{}'", next_class.room)
+                                }
+                                Err(_) => {
+                                    error!("Unable to find a node match for room {:?}", class);
+                                    format!("Could not match room '{}'", class.room,)
+                                }
+                            }
+                        })?;
 
                         if start_room != next_room {
                             day_vec.push(BasicPathway {
@@ -493,7 +540,9 @@ pub fn node_find_func(
                                 start_spot: Location::Entrance,
                                 end_spot: Location::Lexington,
                             });
-                            let end_class = clean_classes[num + 1].clone().ok_or("Final class was a None")?;
+                            let end_class = clean_classes[num + 1]
+                                .clone()
+                                .ok_or("Final class was a None")?;
                             let end_id = name_to_id(&end_class.room.trim().to_lowercase(), &nodes)?;
                             day_vec.push(BasicPathway {
                                 start: 354,
