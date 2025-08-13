@@ -1,5 +1,6 @@
 
 document.addEventListener('DOMContentLoaded', () => {
+
     let has_submitted = false;
     const manual = 0.86;
     let currentScale = 1;
