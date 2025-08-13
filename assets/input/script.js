@@ -35,10 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
 
-    const scaleFactor = 1.2;
+    const scaleFactor = 1.05;
     let currentScale = 1;
+    let isPanning = false;
+    let startPan = { x: 0, y: 0 };
+    let translate = { x: -390, y: -1410 };
+    const panzoomContainer = document.getElementById('panzoom-container');
+    let baseWidth = 0, baseHeight = 0;
     const manualScaleFactor = 0.86;
     const svg = document.getElementById("mySvg");
+    applyTransform()
 
     const image = document.getElementById('hallwayImage');
     document.getElementById("downloadMapBtn").addEventListener("click", downloadMapImage);
@@ -83,19 +89,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     function adjustSvgSize() {
-        const imageRect = image.getBoundingClientRect();
-        svg.style.width = `${imageRect.width}px`;
-        svg.style.height = `${imageRect.height}px`;
-        svg.setAttribute("viewBox", `0 0 ${imageRect.width} ${imageRect.height}`);
+        const w = image.naturalWidth || image.width || 0;
+        const h = image.naturalHeight || image.height || 0;
+        if (!w || !h) return;
+        
+        panzoomContainer.style.width = w + 'px';
+        panzoomContainer.style.height = h + 'px';
+        svg.style.width = w + 'px';
+        svg.style.height = h + 'px';
+        svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
     }
 
-    function zoomCanvas(factor) {
-        currentScale *= factor;
-        const scaleStr = `scale(${currentScale})`;
-        svg.style.transform = scaleStr;
-        image.style.transform = scaleStr;
+    if (image.complete) {
+        adjustSvgSize();
+    } else {
+        image.addEventListener('load', () => {
+            adjustSvgSize();
+        });
     }
 
+    function applyTransform() {
+        panzoomContainer.style.transform = `translate(${translate.x}px, ${translate.y}px) scale(${currentScale})`;
+    }
+
+    function zoomCanvas(factor, centerX, centerY) {
+        const prevScale = currentScale;
+        currentScale = Math.min(8, Math.max(0.2, currentScale * factor));
+        if (currentScale === prevScale) return;
+        if (centerX != null && centerY != null) {
+            const rect = panzoomContainer.getBoundingClientRect();
+            const offsetX = centerX - rect.left;
+            const offsetY = centerY - rect.top;
+            const scaleChange = currentScale / prevScale - 1;
+            translate.x -= offsetX * scaleChange;
+            translate.y -= offsetY * scaleChange;
+        }
+        applyTransform();
+    }
+
+    panzoomContainer.addEventListener('mousedown', (e) => {
+        isPanning = true;
+        startPan = { x: e.clientX - translate.x, y: e.clientY - translate.y };
+        panzoomContainer.style.cursor = 'grabbing';
+    });
+    window.addEventListener('mousemove', (e) => {
+        if (!isPanning) return;
+        translate.x = e.clientX - startPan.x;
+        translate.y = e.clientY - startPan.y;
+        applyTransform();
+    });
+    window.addEventListener('mouseup', () => {
+        if (isPanning) {
+            isPanning = false;
+            panzoomContainer.style.cursor = 'grab';
+        }
+    });
+    panzoomContainer.style.cursor = 'grab';
+    panzoomContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? scaleFactor : 1 / scaleFactor;
+        zoomCanvas(factor, e.clientX, e.clientY);
+    }, { passive: false });
+    
     function toggleMinimize() {
 
         if (document.getElementById('bottom-part').hidden) {
@@ -117,18 +172,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return element;
     }
 
-    function getMousePosition(event, svg) {
-        const rect = svg.getBoundingClientRect();
-        const scaleX = svg.width.baseVal.value / rect.width;
-        const scaleY = svg.height.baseVal.value / rect.height;
-
-        const svgX = (event.clientX - rect.left) * scaleX;
-        const svgY = (event.clientY - rect.top) * scaleY;
-
-        return {
-            mouseX: svgX / currentScale,
-            mouseY: svgY / currentScale
-        };
+    function getMousePosition(event) {
+        const rect = panzoomContainer.getBoundingClientRect();
+        const mouseX = (event.clientX - rect.left) / currentScale;
+        const mouseY = (event.clientY - rect.top) / currentScale;
+        return { mouseX, mouseY };
     }
 
     function isMouseOverArrow(mouseX, mouseY, arrow) {
@@ -224,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleMouseMove(e) {
-        const { mouseX, mouseY } = getMousePosition(e, svg);
+        const { mouseX, mouseY } = getMousePosition(e);
         let tooltipVisible = false;
 
         labels.forEach(label => {
@@ -271,15 +319,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
 
-    document.getElementById("zoomIn").addEventListener("click", () => zoomCanvas(scaleFactor));
+    document.getElementById("zoomIn").addEventListener("click", () => {
+        const mapRect = document.getElementById('map').getBoundingClientRect();
+        zoomCanvas(scaleFactor, mapRect.left + mapRect.width / 2, mapRect.top + mapRect.height / 2);
+    });
     document.getElementById("viewTog").addEventListener("click", () => toggleMinimize());
-    document.getElementById("zoomOut").addEventListener("click", () => zoomCanvas(1 / scaleFactor));
+    document.getElementById("zoomOut").addEventListener("click", () => {
+        const mapRect = document.getElementById('map').getBoundingClientRect();
+        zoomCanvas(1 / scaleFactor, mapRect.left + mapRect.width / 2, mapRect.top + mapRect.height / 2);
+    });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === '+') {
-            zoomCanvas(scaleFactor);
+            const mapRect = document.getElementById('map').getBoundingClientRect();
+            zoomCanvas(scaleFactor, mapRect.left + mapRect.width / 2, mapRect.top + mapRect.height / 2);
         } else if (e.key === '-') {
-            zoomCanvas(1 / scaleFactor);
+            const mapRect = document.getElementById('map').getBoundingClientRect();
+            zoomCanvas(1 / scaleFactor, mapRect.left + mapRect.width / 2, mapRect.top + mapRect.height / 2);
         }
     });
 
@@ -293,9 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     });
     function arrowFetch() {
-        const scaleStr = `scale(${currentScale})`;
-        svg.style.transform = scaleStr;
-        image.style.transform = scaleStr;
+        applyTransform();
         const scheduleInput = document.getElementById('scheduleInput').value;
         const selectedDay = document.getElementById('daySelector').value;
         const semester_type = document.getElementById('semSelector').value;
@@ -342,7 +396,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     for (let i = 1; i < path["nodes"].length; i++) {
                         const container = document.getElementById('hallwayImage');
-                        const { width, height } = container.getBoundingClientRect();
+                        const width = baseWidth || container.naturalWidth || container.getBoundingClientRect().width;
+                        const height = baseHeight || container.naturalHeight || container.getBoundingClientRect().height;
 
                         const node1 = path["nodes"][i - 1];
                         const node2 = path["nodes"][i];
@@ -367,10 +422,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         const xOffset = orthoX * offset;
                         const yOffset = orthoY * offset;
 
-                        const x1 = (node1.x + xOffset) * manualScaleFactor / currentScale;
-                        const y1 = (node1.y + yOffset) * manualScaleFactor / currentScale;
-                        const x2 = (node2.x + xOffset) * manualScaleFactor / currentScale;
-                        const y2 = (node2.y + yOffset) * manualScaleFactor / currentScale;
+                        const x1 = (node1.x + xOffset) * manualScaleFactor;
+                        const y1 = (node1.y + yOffset) * manualScaleFactor;
+                        const x2 = (node2.x + xOffset) * manualScaleFactor;
+                        const y2 = (node2.y + yOffset) * manualScaleFactor;
                         const isStair = isStairNode(node1) && isStairNode(node2);
                         arrows.push({
                             x1Pct: x1 / width,
@@ -413,7 +468,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 adjustSvgSize();
                 document.getElementById('error_message').innerHTML = "";
                 redrawArrows();
-
+                document.getElementById('bottom-part').hidden = true;
+                document.getElementById('map').style.height = '100%';
             })
 
     }
@@ -446,10 +502,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const container = document.getElementById('hallwayImage');
         if (!container) return console.error("hallwayImage container not found!");
-
-        const { width, height } = container.getBoundingClientRect();
+        const width = baseWidth || container.naturalWidth || container.getBoundingClientRect().width;
+        const height = baseHeight || container.naturalHeight || container.getBoundingClientRect().height;
         if (!width || !height) return console.error("Container has zero width or height:", width, height);
-
         const offset = 1320 / width;
         svg.innerHTML = '';
 
