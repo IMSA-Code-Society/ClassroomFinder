@@ -1,6 +1,92 @@
 
+const ex1 = `Y25-26 Semester 1
+Exp 	Trm 	Crs-Sec 	Course Name 	Teacher 	Room 	Enroll 	Leave
+1-2(A,C) 	S1 	SCI603-1 	Biology: Molecular & Cellular 	O'Leary-Driscoll, Sarah 	B108 	08/04/2025 	01/05/2026
+3(A-D) 	S1 	MAT331-1 	BC Calculus III 	Trimm, Anderson 	A135 	08/04/2025 	01/05/2026
+4(A-D) 	S1 	CS255-2 	Elements of Computing Systems 1 	Campbell, Dan K. 	A152 	08/04/2025 	01/05/2026
+5(A-B,D) 	S1 	ENG201a-2 	Literary Explorations III: American 	Kotlarczyk, Adam C 	A119 	08/04/2025 	01/05/2026
+6(A-D) 	S1 	SCI445-2 	Modern Physics 	Hawker, Eric 	B115 	08/04/2025 	01/05/2026
+SE(A-D) 	S1 	SE001-101 	Support & Engagement 	Staff, New 	N/A 	08/18/2025 	01/05/2026
+7(A-B, D) 	S1 	HSS201i-2 	Revolutions 	Buck, Patrick D. 	A114 	08/04/2025 	01/05/2026
+8(A-D) 	S1 	WLG150-101 	French V 	Kwiatkowski, Anne 	A121 	08/04/2025 	01/05/2026
+RC(A-Sp) 	Y25-26 	SLD130-7 	Rolling Check 	Staff, Residential Life 		08/18/2025 	06/16/2026
+CC(A-Sp) 	Y25-26 	SLD120-7 	Curfew Check 	Staff, Residential Life 		08/18/2025 	06/16/2026
+SIR(I) 	S1 	SIR099-999 	SIR 	Staff, SIR 	B131 	08/04/2025 	01/05/2026
+EVE(A-Sp) 	Y25-26 	SLD100-28 	Residential Life 	Brown, Tyson 		08/18/2025 	06/16/2026
 
+Y25-26 Semester 2
+Exp 	Trm 	Crs-Sec 	Course Name 	Teacher 	Room 	Enroll 	Leave
+1(A-B,D) 	S2 	HSS202-1 	The World in the Twentieth Century 	Eysturlid, Lee 	A147 	01/05/2026 	06/16/2026
+2(A,C-D) 	S2 	WEL312-1 	Dance 	Myers, Mary Jane 	F100A 	01/05/2026 	06/16/2026
+3(A-D) 	S2 	CS260-1 	Elements of Computing Systems 2 	Campbell, Dan K. 	A133 	01/05/2026 	06/16/2026
+4(A-D) 	S2 	SCI425-1 	Planetary Science 	Hawker, Eric 	B115 	01/05/2026 	06/16/2026
+5(A-B,D) 	S2 	ENG341-4 	Gender Studies 	Ott, Ashley 	A117 	01/05/2026 	06/16/2026
+SE(A-D) 	S2 	SE001-201 	Support & Engagement 	Staff, New 	N/A 	01/05/2026 	06/16/2026
+7(A-D) 	S2 	MAT442-3 	Multi-Variable Calculus 	Fogel, Micah 	A155 	01/05/2026 	06/16/2026
+8(A-D) 	S2 	WLG150-201 	French V 	Kwiatkowski, Anne 	A121 	01/05/2026 	06/16/2026
+RC(A-Sp) 	Y25-26 	SLD130-7 	Rolling Check 	Staff, Residential Life 		08/18/2025 	06/16/2026
+CC(A-Sp) 	Y25-26 	SLD120-7 	Curfew Check 	Staff, Residential Life 		08/18/2025 	06/16/2026
+EVE(A-Sp) 	Y25-26 	SLD100-28 	Residential Life 	Brown, Tyson 		08/18/2025 	06/16/2026
+
+`
+const ex2 = `Y25-26 Semester 1
+Exp     Trm     Crs-Sec     Course Name     Teacher     Room     Enroll     Leave
+1-2(A)     S1     FAR416-1     Digital Photography     Symoniak, Joyce     E119     08/04/2025     01/05/2026
+3(A-B, D)     S1     HSS325-3     Modern Economics     Kearney, Patrick     A115     08/04/2025     01/05/2026
+4(A-D)     S1     CS255-2     Elements of Computing Systems 1     Campbell, Dan K.     A152     08/04/2025     01/05/2026
+5-6(B,D)     S1     SCI235-1     Biochemistry     Ahrendt, Angela J     A207     08/04/2025     01/05/2026
+5(C) 6(A,C)     S1     ENG355-2     Adaptation: Literature and Film     Rettberg, Eric     A119     08/04/2025     01/05/2026
+SE(A-D)     S1     SE001-101     Support & Engagement     Staff, New     N/A     08/18/2025     01/05/2026
+8(A-D)     S1     MAT801-1     Advanced Topics in Mathematics     Fogel, Micah     A151     08/04/2025     01/05/2026
+RC(A-Sp)     Y25-26     SLD130-5     Rolling Check     Staff, Residential Life         08/18/2025     06/16/2026
+CC(A-Sp)     Y25-26     SLD120-5     Curfew Check     Staff, Residential Life         08/18/2025     06/16/2026
+EVE(A-Sp)     Y25-26     SLD100-20     Residential Life     Schlesser, Caleb         08/18/2025     06/16/2026
+
+Y25-26 Semester 2
+Exp     Trm     Crs-Sec     Course Name     Teacher     Room     Enroll     Leave
+2(A,C-D)     S2     WEL312-1     Dance     Myers, Mary Jane     F100A     01/05/2026     06/16/2026
+3(A-B,D)     S2     ENG365-5     Speculative Fiction Studies     Townsend, Tracy A     A113     01/05/2026     06/16/2026
+4(A-D)     S2     CS260-2     Elements of Computing Systems 2     Campbell, Dan K.     A133     01/05/2026     06/16/2026
+5-6(A,C)     S2     SCI626-1     Environmental Microbiology     Klimek, Desirae     B156     01/05/2026     06/16/2026
+5(B,D) 6(B)     S2     HSS352-2     History of Technology and Culture     Smith, Eric R     A149     01/05/2026     06/16/2026
+SE(A-D)     S2     SE001-201     Support & Engagement     Staff, New     N/A     01/05/2026     06/16/2026
+8(A-D)     S2     MAT445-1     Theory of Analysis     Fogel, Micah     A155     01/05/2026     06/16/2026
+RC(A-Sp)     Y25-26     SLD130-5     Rolling Check     Staff, Residential Life         08/18/2025     06/16/2026
+CC(A-Sp)     Y25-26     SLD120-5     Curfew Check     Staff, Residential Life         08/18/2025     06/16/2026
+EVE(A-Sp)     Y25-26     SLD100-20     Residential Life     Schlesser, Caleb         08/18/2025     06/16/2026`
+const ex3 = `Y25-26 Semester 1
+Exp     Trm     Crs-Sec     Course Name     Teacher     Room     Enroll     Leave
+1(A-B,D)     S1     HSS201b-1     Conflict in World History     Eysturlid, Lee     A147     08/04/2025     01/05/2026
+2(A,C-D)     S1     ENG201b-3     Literary Explorations III: British     Ott, Ashley     A116     08/04/2025     01/05/2026
+3(A-D)     S1     CS255-1     Elements of Computing Systems 1     Campbell, Dan K.     A152     08/04/2025     01/05/2026
+6(A-D)     S1     SCI445-2     Modern Physics     Hawker, Eric     B115     08/18/2025     01/05/2026
+SE(A-D)     S1     SE001-101     Support & Engagement     Staff, New     N/A     08/18/2025     01/05/2026
+7(A-D)     S1     MAT473-3     Linear Algebra     Brummet, Evan     A135     08/18/2025     01/05/2026
+8(A-D)     S1     WLG250-101     Spanish V     Kaluza, Marta J     A131     08/04/2025     01/05/2026
+RC(A-Sp)     Y25-26     SLD130-4     Rolling Check     Staff, Residential Life         08/18/2025     06/16/2026
+CC(A-Sp)     Y25-26     SLD120-4     Curfew Check     Staff, Residential Life         08/18/2025     06/16/2026
+SIR(I)     S1     SIR099-999     SIR     Staff, SIR     B131     08/04/2025     01/05/2026
+EVE(A-Sp)     Y25-26     SLD100-14     Residential Life     Doxey, Cameron         08/18/2025     06/16/2026
+
+Y25-26 Semester 2
+Exp     Trm     Crs-Sec     Course Name     Teacher     Room     Enroll     Leave
+1-2(B,D)     S2     SCI505-2     Computational Science     Dong, Peter J     IN2     01/05/2026     06/16/2026
+3-4(A,C)     S2     SCI316-2     Electronics     Carlson, Mark     B133     01/05/2026     06/16/2026
+3-4(B,D)     S2     SCI604-7     Biology: Molecular & Cellular     Klimek, Desirae     B108     01/05/2026     06/16/2026
+5(A-B,D)     S2     HSS202-6     The World in the Twentieth Century     Eysturlid, Lee     A147     01/05/2026     06/16/2026
+6(A,C-D)     S2     ENG365-3     Speculative Fiction Studies     Townsend, Tracy A     A117     01/05/2026     06/16/2026
+SE(A-D)     S2     SE001-201     Support & Engagement     Staff, New     N/A     01/05/2026     06/16/2026
+7(A-D)     S2     MAT442-3     Multi-Variable Calculus     Fogel, Micah     A155     01/05/2026     06/16/2026
+8(A-D)     S2     WLG250-201     Spanish V     Kaluza, Marta J     A131     01/05/2026     06/16/2026
+RC(A-Sp)     Y25-26     SLD130-4     Rolling Check     Staff, Residential Life         08/18/2025     06/16/2026
+CC(A-Sp)     Y25-26     SLD120-4     Curfew Check     Staff, Residential Life         08/18/2025     06/16/2026
+EVE(A-Sp)     Y25-26     SLD100-14     Residential Life     Doxey, Cameron         08/18/2025     06/16/2026
+
+
+
+`
 document.addEventListener('DOMContentLoaded', () => {
+
     let first_time_visiter = true;
     function setCookie(c_name, value, exdays) { var exdate = new Date(); exdate.setDate(exdate.getDate() + exdays); var c_value = escape(value) + ((exdays == null) ? "" : "; expires=" + exdate.toUTCString()); document.cookie = c_name + "=" + c_value; }
 
@@ -11,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkSession() {
         var c = getCookie("visited");
         if (c === "yes") {
-            
+
             first_time_visiter = false
         } else {
             alert("Hello! It seems to be your first time using the site. Review the about page if you need help getting your schedule inputted.")
@@ -33,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         8: "pink",
         9: "brown"
     };
-    
+
 
     const scaleFactor = 1.05;
     let currentScale = 1;
@@ -92,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const w = image.naturalWidth || image.width || 0;
         const h = image.naturalHeight || image.height || 0;
         if (!w || !h) return;
-        
+
         panzoomContainer.style.width = w + 'px';
         panzoomContainer.style.height = h + 'px';
         svg.style.width = w + 'px';
@@ -150,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const factor = e.deltaY < 0 ? scaleFactor : 1 / scaleFactor;
         zoomCanvas(factor, e.clientX, e.clientY);
     }, { passive: false });
-    
+
     function toggleMinimize() {
 
         if (document.getElementById('bottom-part').hidden) {
@@ -341,6 +427,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('scheduleForm').addEventListener('submit', function (e) {
         has_submitted = true;
+        const example = document.getElementById("exampleSched").value;
+        console.log(example);
+        if (example != "no_ex") {
+            let input = document.getElementById("scheduleInput");
+            if (example == "ex1") {
+                input.value = ex1;
+            } else if (example == "ex2") {
+                input.value = ex2;
+
+            } else if (example == "ex3") {
+                input.value = ex3;
+
+            } else {
+                console.error("Invalid example key given of '" + example + "'")
+            }
+        }
         e.preventDefault();
 
         arrowFetch();
@@ -468,8 +570,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 adjustSvgSize();
                 document.getElementById('error_message').innerHTML = "";
                 redrawArrows();
-                document.getElementById('bottom-part').hidden = true;
-                document.getElementById('map').style.height = '100%';
+                //document.getElementById('bottom-part').hidden = true;
+                //document.getElementById('map').style.height = '100%';
+                //this seems to be confusing ppl, will be removing for now.
+                //if added in future use toggleMinimize() to do it also
             })
 
     }
