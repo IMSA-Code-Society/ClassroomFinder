@@ -16,6 +16,10 @@ pub async fn input() -> impl Responder {
     println!("main schedule maker loaded");
     serve_html("assets/input/index.html")
 }
+pub async fn find_room() -> impl Responder {
+    println!("room finder loaded");
+    serve_html("assets/find_room/home.html")
+}
 
 pub async fn editor() -> impl Responder {
     println!("!!! editor loaded");
@@ -27,7 +31,6 @@ pub async fn about() -> impl Responder {
 }
 
 pub async fn image() -> impl Responder {
-    
     match std::fs::read("assets/imsa_hallway.jpg") {
         Ok(file) => HttpResponse::Ok().content_type("image/jpg").body(file),
         Err(err) => HttpResponse::from_error(err),
@@ -35,7 +38,6 @@ pub async fn image() -> impl Responder {
 }
 
 pub async fn css_handler() -> impl Responder {
-    
     match tokio::fs::read_to_string("assets/home.css").await {
         Ok(file) => HttpResponse::Ok().content_type("text/css").body(file),
         Err(err) => HttpResponse::from_error(err),
@@ -94,6 +96,37 @@ pub async fn directions(web::Json(request): web::Json<serde_json::Value>) -> imp
     let path_json: Vec<serde_json::Value> = build_direct_json(&shortest_path, &nodes);
 
     HttpResponse::Ok().json(serde_json::json!({ "path": path_json }))
+}
+
+fn check_loc_request(request: serde_json::Value) -> Result<(Node, Vec<Node>), String> {
+    let room = request["room"]
+        .as_str()
+        .ok_or("No key for 'room' was found")?
+        .to_string();
+
+    let nodes: Vec<Node> = file_utils::read_nodes_from_file("assets/nodes.json")?;
+    let full_room: usize = name_to_id(&room, &nodes)?;
+    let final_room: Node = nodes
+        .iter()
+        .filter(|x| x.id == full_room)
+        .cloned()
+        .collect::<Vec<Node>>()[0]
+        .clone();
+
+    return Ok((final_room, nodes));
+}
+pub async fn find_room_loc(web::Json(request): web::Json<serde_json::Value>) -> impl Responder {
+    let (room, mut nodes) = match check_loc_request(request) {
+        Ok((room, nodes)) => (room, nodes),
+        Err(err) => {
+            return HttpResponse::BadRequest()
+                .json(serde_json::json!({"status": 1, "error_message": format!("{err}")}))
+        }
+    };
+
+    reset_nodes(&mut nodes);
+
+    HttpResponse::Ok().json(serde_json::json!({ "room": room }))
 }
 
 fn build_path_json(path: &FullPathway, nodes: &[Node]) -> serde_json::Value {

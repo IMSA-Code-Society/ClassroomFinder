@@ -16,7 +16,7 @@
 
 
   <link rel="stylesheet" href="/assets/home.css">
-  <script src="/assets/path/script.js" defer></script>
+  <script src="/assets/find_room/script.js" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 </head>
 
@@ -29,10 +29,10 @@
   <div id="bottom-part" class="input_response">
 
     <div id="maindiv" style="padding-top: 20px;">
-      <input id="start" type="text" style="color: white" placeholder="Enter Starting location" class="dark-input">
-      <input id="end" type="text" style="color: white" placeholder="Enter Destination" class="dark-input">
+      <input id="room" type="text" style="color: white" placeholder="Enter Room" class="dark-input">
+
       <div><button style="font-size: medium; width: 200px;" class="path_button dark-input">
-          Find Shortest Path
+          Find Room
         </button></div>
 
 
@@ -59,41 +59,12 @@
           <a rel="noopener noreferrer" href="https://geosir.github.io/imsa-scheduler/">George's
             Schedule Machine >></a>
         </p>
+
       </div>
     </div>
 
 
   </div>
 </body>
-<script>
-  window.addEventListener("load", () => {
-    const map = document.getElementById("map");
-    const scrollHeight = map.scrollHeight - map.clientHeight;
-    map.scrollTop = scrollHeight * 0.15;
-  });
-
-  function saveToStorage(id, value) {
-    localStorage.setItem(id, value);
-  }
-
-  function loadFromStorage(id) {
-    return localStorage.getItem(id);
-  }
-
-  const elementsToPersist = ["start", "end"];
-
-  window.addEventListener("DOMContentLoaded", () => {
-    elementsToPersist.forEach(id => {
-      const el = document.getElementById(id);
-      const saved = loadFromStorage(id);
-      if (saved !== null) {
-        el.value = saved;
-      }
-
-      el.addEventListener("input", () => saveToStorage(id, el.value));
-      el.addEventListener("change", () => saveToStorage(id, el.value));
-    });
-  });
-</script>
 
 </html>

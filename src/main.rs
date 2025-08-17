@@ -10,6 +10,8 @@ mod webpages;
 use webpages::{
     about, css_handler, directions, editor, home_page, image, input, save, schedule_handle,
 };
+
+use crate::webpages::{find_room, find_room_loc};
 #[derive(Debug, Deserialize, Serialize, Clone)]
 struct Node {
     x: f64,
@@ -158,6 +160,8 @@ async fn main() -> ShuttleActixWeb<impl FnOnce(&mut ServiceConfig) + Send + Clon
                 .route("/schedule-post", web::post().to(schedule_handle))
                 .route("/path", web::get().to(home_page))
                 .route("/about", web::get().to(about))
+                .route("/room", web::get().to(find_room))
+                .route("/find_room_loc", web::post().to(find_room_loc))
                 .service(Files::new("/assets", "assets")),
         );
     };
