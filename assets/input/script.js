@@ -513,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let d = '';
 
         const radius = 12 / currentScale;
-        const shortenEnd = 6 / currentScale;
+        const shortenEnd = currentScale;
         let to_draw_arrowhead = 0;
         for (let i = 0; i < arrows.length; i++) {
             const cur = arrows[i];
