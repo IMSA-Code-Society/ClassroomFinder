@@ -142,7 +142,7 @@ fn resolve_semester(input: &str) -> Result<Vec<Class>, String> {
     }
 
     listvec.retain(|line| {
-        !line.trim().is_empty() && !line.starts_with("RC") && !line.starts_with("CC")
+        !line.trim().is_empty() && !line.starts_with("RC") && !line.starts_with("CC") && !line.starts_with("SIR") &&  !line.starts_with("EVE")
     });
 
     let (
